@@ -109,8 +109,19 @@ function varargout=runme(varargin)
 		md.geometry.bed = B;
 		minimal_thickness = 10;
 		md.geometry.base = md.geometry.bed;
+		md.geometry.surface = md.geometry.base + minimal_thickness;
 
+		% set floating ice    
+		pos = (md.geometry.surface<0);
+		md.geometry.surface(pos) = (1-md.materials.rho_ice/md.materials.rho_water)*minimal_thickness;
+		md.geometry.base(pos) = -md.materials.rho_ice/md.materials.rho_water*minimal_thickness;
+		md.geometry.thickness = md.geometry.surface - md.geometry.base;
 
+		% mask
+		md = sethydrostaticmask(md);
+		md.mask.ice_levelset = -1*ones(md.mesh.numberofvertices,1);
+		md.mask.ice_levelset((r>750e3)) = +1;
+		md.mask.ice_levelset = reinitializelevelset(md, md.mask.ice_levelset);
 
 		savemodel(org,md);
 	end%}}}
