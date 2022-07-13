@@ -77,7 +77,6 @@ function varargout=runme(varargin)
 		md=loadmodel(org,'Mesh');
 
 		md=setflowequation(md,'SSA','all');
-		md=setmask(md,'','');
 
 		% parameters for CalvingMIP
 		md.constants.yts = 365.2422*3600*24;
@@ -118,6 +117,7 @@ function varargout=runme(varargin)
 		md.geometry.thickness = md.geometry.surface - md.geometry.base;
 
 		% mask
+		md = setmask(md,'','');
 		md = sethydrostaticmask(md);
 		md.mask.ice_levelset = -1*ones(md.mesh.numberofvertices,1);
 		md.mask.ice_levelset((r>750e3)) = +1;
@@ -125,6 +125,74 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end%}}}
+	if perform(org, 'LoadInterpolant') % {{{
+
+		md=loadmodel(org,'Param');
+
+		%Start from Hilmar's steady state results
+		load('./DATA/SteadyStateInterpolantsThuleMin10km.mat');
+		md.geometry.surface = Fs(md.mesh.x,md.mesh.y);
+		md.geometry.base    = Fb(md.mesh.x,md.mesh.y);
+		pos = find(abs(md.geometry.base - md.geometry.bed)<15);
+		md.geometry.base(pos) = md.geometry.bed(pos);
+		md.geometry.thickness = md.geometry.surface - md.geometry.base;
+		md=sethydrostaticmask(md);
+
+		pos = find(md.mask.ocean_levelset>0);
+		md.geometry.base(pos) = md.geometry.bed(pos);
+		md.geometry.thickness = md.geometry.surface - md.geometry.base;
+
+		md.mask.ice_levelset = -1*ones(md.mesh.numberofvertices,1);
+		md.mask.ice_levelset(find(r>750e3)) = +1;
+		md.mask.ice_levelset = reinitializelevelset(md, md.mask.ice_levelset);
+
+		savemodel(org,md);
+	end %}}}
+	if perform(org, 'SetBC')% {{{
+
+		md=loadmodel(org,'LoadInterpolant');
+		%md=loadmodel(org,'Param');
+
+		%velocity
+		md=setflowequation(md,'MOLHO','all');
+		%		md=setflowequation(md,'SSA','all');
+		md.stressbalance.spcvx = NaN(md.mesh.numberofvertices,1);
+		md.stressbalance.spcvy = NaN(md.mesh.numberofvertices,1);
+		md.stressbalance.spcvz = NaN(md.mesh.numberofvertices,1);
+		md.stressbalance.referential=NaN*ones(md.mesh.numberofvertices,6);
+		md.stressbalance.loadingforce=0*ones(md.mesh.numberofvertices,3);
+
+		%Mass transport BC
+		md.masstransport.spcthickness = NaN(md.mesh.numberofvertices,1);
+
+		md = SetMOLHOBC(md);
+
+		savemodel(org,md);
+	end%}}}
+	if perform(org, 'Stressbalance') % {{{
+
+		md=loadmodel(org,'SetBC');
+
+		%Set initial speed otherwise solver blows up
+		r     = sqrt(md.mesh.x.^2 + md.mesh.y.^2);
+		theta = atan2(md.mesh.y,md.mesh.x);
+		md.initialization.vx = r.*cos(theta);
+		md.initialization.vy = r.*sin(theta);
+		%md.initialization.vx(:) = 1;
+		%md.initialization.vy(:) = 1;
+
+		md.stressbalance.requested_outputs={'default','VxSurface','VySurface','VxShear','VyShear','VxBase','VyBase'};
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.verbose.convergence =1;
+		md.cluster = cluster;
+		md=solve(md,'sb');
+
+		%Set as initial vx and vy for later
+		md.initialization.vx = md.results.StressbalanceSolution.Vx;
+		md.initialization.vy = md.results.StressbalanceSolution.Vy;
+
+		savemodel(org,md);
+	end %}}}
 
 	%%%%%% Step 11--15
 
