@@ -14,14 +14,20 @@ function varargout=runme(varargin)
 	%GET steps: [1]{{{
 	steps = getfieldvalue(options,'steps',[1]);
 	% }}}
+	%GET flow model: 'MOLHO'{{{
+	flowmodel = getfieldvalue(options,'flow model', 'MOLHO');
+	% }}}
+	%GET load from interpolant: 0 {{{
+	loadFromInterpolant = getfieldvalue(options,'load from interpolant', 0);
+	% }}}
 	%GET resolution: 5e3{{{
 	resolution = getfieldvalue(options,'resolution', 5e3);
 	% }}}
+	%GET final time: 1{{{
+	finalTime = getfieldvalue(options,'final time', 1);
+	% }}}
 	%GET domain size L: 1e6{{{
 	L = getfieldvalue(options,'L', 1e6);
-	% }}}
-	%GET Ice temprature, -8 {{{
-	iceTemp = getfieldvalue(options,'iceTemp',-8);
 	% }}}
 	%GET savepath: '/' {{{
 	savePath = getfieldvalue(options,'savePath', '/');
@@ -62,20 +68,21 @@ function varargout=runme(varargin)
 	org=organizer('repository',['./Models'],'prefix',['Model_' glacier '_'],'steps',steps); clear steps;
 	fprintf(['\n  ========  ' upper(glacier) '  ========\n\n']);
 	%}}}
-	%set parameters{{{
+	%Settings and suffix{{{
+	suffix = ['_', num2str(resolution/1000, '%.0f'), 'km'];
 	%}}}
 
 	%%%%%% Step 1--10
-	if perform(org, 'Mesh')% {{{
+	if perform(org, ['Mesh', suffix])% {{{
 		md = roundmesh(model(), L, resolution);
 		md.miscellaneous.name = [glacier, '_', num2str(resolution/1000), 'km'];
 
 		savemodel(org,md);
 	end %}}}
-	if perform(org, 'Param')% {{{
+	if perform(org, ['Param', suffix])% {{{
+		md=loadmodel(org, ['Mesh', suffix]);
 
-		md=loadmodel(org,'Mesh');
-
+		% this does not matter
 		md=setflowequation(md,'SSA','all');
 
 		% parameters for CalvingMIP
@@ -125,9 +132,9 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end%}}}
-	if perform(org, 'LoadInterpolant') % {{{
+	if perform(org, ['LoadInterpolant', suffix]) % {{{
 
-		md=loadmodel(org,'Param');
+		md=loadmodel(org, ['Param', suffix]);
 
 		%Start from Hilmar's steady state results
 		load('./DATA/SteadyStateInterpolantsThuleMin10km.mat');
@@ -148,14 +155,19 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end %}}}
-	if perform(org, 'SetBC')% {{{
+	if perform(org, ['SetBC_', flowmodel, suffix])% {{{
 
-		md=loadmodel(org,'LoadInterpolant');
-		%md=loadmodel(org,'Param');
+		if loadFromInterpolant
+			disp('  Use steady state interpolant from Hilmar for the initial condition');
+			md=loadmodel(org, ['LoadInterpolant', suffix]);
+		else
+			md=loadmodel(org, ['Param', suffix]);
+		end
 
-		%velocity
-		md=setflowequation(md,'MOLHO','all');
-		%		md=setflowequation(md,'SSA','all');
+		% set flow model
+		md=setflowequation(md,flowmodel,'all');
+
+		% boundary conditions
 		md.stressbalance.spcvx = NaN(md.mesh.numberofvertices,1);
 		md.stressbalance.spcvy = NaN(md.mesh.numberofvertices,1);
 		md.stressbalance.spcvz = NaN(md.mesh.numberofvertices,1);
@@ -165,23 +177,28 @@ function varargout=runme(varargin)
 		%Mass transport BC
 		md.masstransport.spcthickness = NaN(md.mesh.numberofvertices,1);
 
-		md = SetMOLHOBC(md);
+		if strcmp(flowmodel, 'MOLHO')
+			disp('  Set boundary conditions for MOLHO');
+			md = SetMOLHOBC(md);
+		end
 
 		savemodel(org,md);
 	end%}}}
-	if perform(org, 'Stressbalance') % {{{
+	if perform(org, ['Stressbalance_', flowmodel, suffix]) % {{{
 
-		md=loadmodel(org,'SetBC');
+		md=loadmodel(org,['SetBC_', flowmodel, suffix]);
 
 		%Set initial speed otherwise solver blows up
 		r     = sqrt(md.mesh.x.^2 + md.mesh.y.^2);
 		theta = atan2(md.mesh.y,md.mesh.x);
 		md.initialization.vx = r.*cos(theta);
 		md.initialization.vy = r.*sin(theta);
-		%md.initialization.vx(:) = 1;
-		%md.initialization.vy(:) = 1;
 
-		md.stressbalance.requested_outputs={'default','VxSurface','VySurface','VxShear','VyShear','VxBase','VyBase'};
+		% output for MOLHO
+		if strcmp(flowmodel, 'MOLHO')
+			md.stressbalance.requested_outputs={'default','VxSurface','VySurface','VxShear','VyShear','VxBase','VyBase'};
+		end
+
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		md.verbose.convergence =1;
 		md.cluster = cluster;
@@ -193,6 +210,40 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end %}}}
+	if perform(org, ['Spinup_', flowmodel, suffix]) % {{{
+
+		md=loadmodel(org, ['Stressbalance_',flowmodel, suffix]);
+
+		% Set parameters
+		md.inversion.iscontrol=0;
+		md.settings.output_frequency = 100;
+		md.timestepping=timesteppingadaptive();
+		md.timestepping.time_step_max=0.1*(cfl_step(md, md.results.StressbalanceSolution.Vx, md.results.StressbalanceSolution.Vy));
+		md.timestepping.time_step_min=0.1;
+		md.timestepping.start_time=0;
+		md.timestepping.final_time=finalTime;
+
+		% We set the transient parameters
+		md.transient.ismovingfront=0;
+		md.transient.isthermal=0;
+		md.transient.isstressbalance=1;
+		md.transient.ismasstransport=1;
+		md.transient.isgroundingline=1;
+		md.groundingline.migration = 'SubelementMigration';
+
+		md.verbose.solution=1;
+		md.verbose.convergence=0;
+		md.cluster = cluster;
+		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation'};
+		md.stressbalance.requested_outputs={'default'};
+
+		%solve
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.cluster = cluster;
+		md=solve(md,'tr');
+
+		savemodel(org,md);
+	end % }}}
 
 	%%%%%% Step 11--15
 
