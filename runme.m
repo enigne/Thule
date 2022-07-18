@@ -23,6 +23,9 @@ function varargout=runme(varargin)
 	%GET resolution: 5e3{{{
 	resolution = getfieldvalue(options,'resolution', 5e3);
 	% }}}
+	%GET resolution: 5e3{{{
+	coarse_resolution = getfieldvalue(options,'coarse resolution', 20e3);
+	% }}}
 	%GET final time: 1{{{
 	finalTime = getfieldvalue(options,'final time', 1);
 	% }}}
@@ -70,9 +73,10 @@ function varargout=runme(varargin)
 	%}}}
 	%Settings and suffix{{{
 	suffix = ['_', num2str(resolution/1000, '%.0f'), 'km'];
-	%}}}
+	coarse_suffix = ['_', num2str(coarse_resolution/1000, '%.0f'), 'km'];
+	%}}}za
 
-	%%%%%% Step 1--10
+	%%%%%% Step 1--6
 	if perform(org, ['Mesh', suffix])% {{{
 		md = roundmesh(model(), L, resolution);
 		md.miscellaneous.name = [glacier, '_', num2str(resolution/1000), 'km'];
@@ -244,8 +248,25 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end % }}}
+	%%%%%% Step 7--15
+	% project spinup solution a finer resolution, the reason to not do refinement directly is because the domain is a circle
+	if perform(org, ['Reinitialize', suffix])% {{{
+		md=loadmodel(org, ['Stressbalance_',flowmodel, suffix]);
 
-	%%%%%% Step 11--15
+		md_coarse = loadmodel(org,['Spinup_',flowmodel, coarse_suffix]);
+
+		disp(['  Projecting ', num2str(md_coarse.mesh.numberofvertices), ' nodes to a finer mesh with ', num2str(md.mesh.numberofvertices), ' nodes' ])
+		
+		md.geometry.thickness = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Thickness, md.mesh.x, md.mesh.y);
+		md.geometry.surface = md.geometry.base + md.geometry.thickness;
+		
+		md.initialization.vx = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Vx, md.mesh.x, md.mesh.y);
+		md.initialization.vy = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Vy, md.mesh.x, md.mesh.y);
+
+		md=solve(md,'sb');
+		% load the coarse mesh results
+		savemodel(org,md);
+	end %}}}
 
 	%%%%%% Step 16--20
 
