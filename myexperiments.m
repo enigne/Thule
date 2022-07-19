@@ -12,6 +12,6 @@ flowmodel = 'MOLHO';
 %md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'final time', T);
 
 % reinitialize on a finer mesh
-steps = [7];
+steps = [ 7];
 resolution = 5e3;
 md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel);
