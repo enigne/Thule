@@ -23,7 +23,7 @@ function varargout=runme(varargin)
 	%GET resolution: 5e3{{{
 	resolution = getfieldvalue(options,'resolution', 5e3);
 	% }}}
-	%GET resolution: 5e3{{{
+	%GET coarse resolution: 20e3{{{
 	coarse_resolution = getfieldvalue(options,'coarse resolution', 20e3);
 	% }}}
 	%GET final time: 1{{{
