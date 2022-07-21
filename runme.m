@@ -67,7 +67,7 @@ function varargout=runme(varargin)
 		cluster.time = jobTime;
 		waitonlock = 0;
 	else
-		cluster=generic('name',oshostname(),'np', 30);
+		cluster=generic('name',oshostname(),'np', 40);
 		waitonlock = Inf;
 	end
 	clear clustername
@@ -234,7 +234,7 @@ function varargout=runme(varargin)
 	if perform(org, ['Reinitialize_', flowmodel, suffix])% {{{
 		md=loadmodel(org, ['Stressbalance_',flowmodel, suffix]);
 
-		md_coarse = loadmodel(org,['Spinup_','MOLHO', coarse_suffix]);
+		md_coarse = loadmodel(org,['Spinup_', flowmodel, coarse_suffix]);
 
 		disp(['  Projecting ', num2str(md_coarse.mesh.numberofvertices), ' nodes to a finer mesh with ', num2str(md.mesh.numberofvertices), ' nodes' ])
 		minimal_thickness = md.masstransport.min_thickness;
@@ -242,18 +242,18 @@ function varargout=runme(varargin)
 		md.geometry.surface = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Surface, md.mesh.x, md.mesh.y);
 		md.geometry.base = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Base, md.mesh.x, md.mesh.y);
 		md.geometry.thickness = md.geometry.surface - md.geometry.base;
-		md.geometry.thickness(md.geometry.thickness<minimal_thickness) = minimal_thickness;
 		md=sethydrostaticmask(md);
 
 		pos = find(md.mask.ocean_levelset>0);
 		md.geometry.base(pos) = md.geometry.bed(pos);
 		md.geometry.thickness = md.geometry.surface - md.geometry.base;
+		md.geometry.thickness(md.geometry.thickness<minimal_thickness) = minimal_thickness;
 
 		md.initialization.vx = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Vx, md.mesh.x, md.mesh.y);
 		md.initialization.vy = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Vy, md.mesh.x, md.mesh.y);
+		md.initialization.vel = sqrt(md.initialization.vx.^2 + md.initialization.vy.^2);
 
 		md=solve(md,'sb');
-		% load the coarse mesh results
 		savemodel(org,md);
 	end %}}}
 	if perform(org, ['Relaxation_', flowmodel, suffix]) % {{{
