@@ -79,7 +79,7 @@ function varargout=runme(varargin)
 	coarse_suffix = ['_', num2str(coarse_resolution/1000, '%.0f'), 'km'];
 	%}}}za
 
-	%%%%%% Step 1--6
+	%%%%%% Step 1--5
 	if perform(org, ['Mesh', suffix])% {{{
 		md = roundmesh(model(), L, resolution);
 		md.miscellaneous.name = [glacier, '_', num2str(resolution/1000), 'km'];
@@ -139,29 +139,6 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end%}}}
-	if perform(org, ['LoadInterpolant', suffix]) % {{{
-
-		md=loadmodel(org, ['Param', suffix]);
-
-		%Start from Hilmar's steady state results
-		load('./DATA/SteadyStateInterpolantsThuleMin10km.mat');
-		md.geometry.surface = Fs(md.mesh.x,md.mesh.y);
-		md.geometry.base    = Fb(md.mesh.x,md.mesh.y);
-		pos = find(abs(md.geometry.base - md.geometry.bed)<15);
-		md.geometry.base(pos) = md.geometry.bed(pos);
-		md.geometry.thickness = md.geometry.surface - md.geometry.base;
-		md=sethydrostaticmask(md);
-
-		pos = find(md.mask.ocean_levelset>0);
-		md.geometry.base(pos) = md.geometry.bed(pos);
-		md.geometry.thickness = md.geometry.surface - md.geometry.base;
-
-		md.mask.ice_levelset = -1*ones(md.mesh.numberofvertices,1);
-		md.mask.ice_levelset(find(r>750e3)) = +1;
-		md.mask.ice_levelset = reinitializelevelset(md, md.mask.ice_levelset);
-
-		savemodel(org,md);
-	end %}}}
 	if perform(org, ['SetBC_', flowmodel, suffix])% {{{
 
 		if loadFromInterpolant
@@ -251,7 +228,8 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end % }}}
-	%%%%%% Step 7--15
+
+	%%%%%% Step 6--15
 	% project spinup solution a finer resolution, the reason to not do refinement directly is because the domain is a circle
 	if perform(org, ['Reinitialize_', flowmodel, suffix])% {{{
 		md=loadmodel(org, ['Stressbalance_',flowmodel, suffix]);
@@ -315,6 +293,29 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end % }}}
+	if perform(org, ['LoadInterpolant', suffix]) % {{{
+
+		md=loadmodel(org, ['Param', suffix]);
+
+		%Start from Hilmar's steady state results
+		load('./DATA/SteadyStateInterpolantsThuleMin10km.mat');
+		md.geometry.surface = Fs(md.mesh.x,md.mesh.y);
+		md.geometry.base    = Fb(md.mesh.x,md.mesh.y);
+		pos = find(abs(md.geometry.base - md.geometry.bed)<15);
+		md.geometry.base(pos) = md.geometry.bed(pos);
+		md.geometry.thickness = md.geometry.surface - md.geometry.base;
+		md=sethydrostaticmask(md);
+
+		pos = find(md.mask.ocean_levelset>0);
+		md.geometry.base(pos) = md.geometry.bed(pos);
+		md.geometry.thickness = md.geometry.surface - md.geometry.base;
+
+		md.mask.ice_levelset = -1*ones(md.mesh.numberofvertices,1);
+		md.mask.ice_levelset(find(r>750e3)) = +1;
+		md.mask.ice_levelset = reinitializelevelset(md, md.mask.ice_levelset);
+
+		savemodel(org,md);
+	end %}}}
 
 	%%%%%% Step 16--20
 
