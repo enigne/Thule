@@ -234,11 +234,15 @@ function varargout=runme(varargin)
 	if perform(org, ['Reinitialize_', flowmodel, suffix])% {{{
 		md=loadmodel(org, ['Stressbalance_',flowmodel, suffix]);
 
-		md_coarse = loadmodel(org,['Spinup_', flowmodel, coarse_suffix]);
+		if (coarse_resolution>=20e3)
+			md_coarse = loadmodel(org,['Spinup_', flowmodel, coarse_suffix]);
+		else
+			md_coarse = loadmodel(org,['Relaxation_', flowmodel, coarse_suffix]);
+		end
 
 		disp(['  Projecting ', num2str(md_coarse.mesh.numberofvertices), ' nodes to a finer mesh with ', num2str(md.mesh.numberofvertices), ' nodes' ])
 		minimal_thickness = md.masstransport.min_thickness;
-		
+
 		md.geometry.surface = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Surface, md.mesh.x, md.mesh.y);
 		md.geometry.base = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Base, md.mesh.x, md.mesh.y);
 		md.geometry.thickness = md.geometry.surface - md.geometry.base;
@@ -293,6 +297,7 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end % }}}
+
 	if perform(org, ['LoadInterpolant', suffix]) % {{{
 
 		md=loadmodel(org, ['Param', suffix]);
