@@ -3,13 +3,13 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [5];
+experiments = [1];
 flowmodel = 'MOLHO';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
 	steps = [1:5];
 	resolution = 20e3;
-	T = 10000;
+	T = 20000;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'final time', T);
 end %}}}
 if any(experiments == 2) % exp 2: project to 10km mesh and reinitialize {{{
