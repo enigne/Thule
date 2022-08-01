@@ -44,8 +44,8 @@ function varargout=runme(varargin)
 	%GET reinitialization for levelset: 10 {{{
 	levelsetReinit = getfieldvalue(options,'levelset reinitialize', 10);
 	% }}}
-	%GET jobTime for running on supercomputer: 2 hours{{{
-	jobTime = getfieldvalue(options,'jobTime', 2);
+	%GET jobTime for running on supercomputer: 10 hours{{{
+	jobTime = getfieldvalue(options,'jobTime', 10);
 	% }}}
 
 	%Load some necessary codes {{{
@@ -59,7 +59,7 @@ function varargout=runme(varargin)
 		cluster=pfe('numnodes',1,'time',60,'processor','bro','cpuspernode',28,'queue','devel'); %max time is 120 (2hr) and max cpuspernode is 28 for 'bro'
 		cluster=pfe('numnodes',1,'time',60,'processor','bro','cpuspernode',28,'queue','normal');
 	elseif strcmpi(clustername,'discovery')
-		cluster=discovery('numnodes',1,'cpuspernode',16);
+		cluster=discovery('numnodes',10,'cpuspernode',16);
 		cluster.time = jobTime;
 		waitonlock = 0;
 	elseif strcmpi(clustername,'greenplanet')
@@ -294,6 +294,51 @@ function varargout=runme(varargin)
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		md.cluster = cluster;
 		md=solve(md,'tr');
+
+		savemodel(org,md);
+	end % }}}
+	if perform(org, ['Pseudo_Relaxation_', flowmodel, suffix]) % {{{
+
+		md=loadmodel(org, ['Reinitialize_',flowmodel, suffix]);
+
+		md.initialization.vx = md.results.StressbalanceSolution.Vx;
+		md.initialization.vy = md.results.StressbalanceSolution.Vy;
+
+		% Set parameters
+		md.inversion.iscontrol=0;
+		md.settings.output_frequency = 100;
+		md.timestepping=timesteppingadaptive();
+		md.timestepping.time_step_max=0.9*(cfl_step(md, md.results.StressbalanceSolution.Vx, md.results.StressbalanceSolution.Vy));
+		md.timestepping.time_step_min=0.01;
+		md.timestepping.start_time=0;
+		md.timestepping.final_time=relaxTime;
+
+		% We set the transient parameters
+		md.transient.ismovingfront=0;
+		md.transient.isthermal=0;
+		md.transient.isstressbalance=1;
+		md.transient.ismasstransport=1;
+		md.transient.isgroundingline=1;
+		md.groundingline.migration = 'SubelementMigration';
+
+		md.verbose.solution=1;
+		md.verbose.convergence=0;
+		md.cluster = cluster;
+		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation'};
+		md.stressbalance.requested_outputs={'default'};
+
+		% one nonlinear iter per time step
+		md.stressbalance.reltol = NaN;
+		md.stressbalance.abstol = NaN;
+		md.stressbalance.maxiter = 1;
+
+		md.settings.waitonlock = waitonlock; % do not wait for complete
+		md.miscellaneous.name = [savePath];
+
+		%solve
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.cluster = cluster;
+		md=solve(md,'tr','runtimename',false);
 
 		savemodel(org,md);
 	end % }}}

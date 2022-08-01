@@ -3,7 +3,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [6, 7];
+experiments = [8];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
@@ -46,4 +46,14 @@ if any(experiments == 7) % exp 7: relaxation on 2km mesh {{{
 	resolution = 2e3;
 	relaxT = 5000;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
+end %}}}
+if any(experiments == 8) % exp 8: relaxation on 2km mesh with maxite=1, discovery {{{
+	steps = [8];
+	resolution = 2e3;
+	relaxT = 10000;
+	savePath = [today, '_pseudo_relaxation_2km'];
+	md = runme('steps', steps, ...
+		'cluster name', 'discovery', ...
+		'savePath', [savePath],...
+		'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
 end %}}}
