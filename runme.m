@@ -44,8 +44,8 @@ function varargout=runme(varargin)
 	%GET reinitialization for levelset: 10 {{{
 	levelsetReinit = getfieldvalue(options,'levelset reinitialize', 10);
 	% }}}
-	%GET jobTime for running on supercomputer: 10 hours{{{
-	jobTime = getfieldvalue(options,'jobTime', 10);
+	%GET jobTime for running on supercomputer: 100 hours{{{
+	jobTime = getfieldvalue(options,'jobTime', 100);
 	% }}}
 
 	%Load some necessary codes {{{
@@ -59,7 +59,7 @@ function varargout=runme(varargin)
 		cluster=pfe('numnodes',1,'time',60,'processor','bro','cpuspernode',28,'queue','devel'); %max time is 120 (2hr) and max cpuspernode is 28 for 'bro'
 		cluster=pfe('numnodes',1,'time',60,'processor','bro','cpuspernode',28,'queue','normal');
 	elseif strcmpi(clustername,'discovery')
-		cluster=discovery('numnodes',10,'cpuspernode',16);
+		cluster=discovery('numnodes',1,'cpuspernode',64);
 		cluster.time = jobTime;
 		waitonlock = 0;
 	elseif strcmpi(clustername,'greenplanet')
@@ -236,6 +236,8 @@ function varargout=runme(varargin)
 
 		if (coarse_resolution>=20e3)
 			md_coarse = loadmodel(org,['Spinup_', flowmodel, coarse_suffix]);
+		elseif (coarse_resolution<=2e3)
+			md_coarse = loadmodel(org,['Pseudo_Relaxation_', flowmodel, coarse_suffix]);
 		else
 			md_coarse = loadmodel(org,['Relaxation_', flowmodel, coarse_suffix]);
 		end
@@ -308,7 +310,7 @@ function varargout=runme(varargin)
 		md.inversion.iscontrol=0;
 		md.settings.output_frequency = 100;
 		md.timestepping=timesteppingadaptive();
-		md.timestepping.time_step_max=0.9*(cfl_step(md, md.results.StressbalanceSolution.Vx, md.results.StressbalanceSolution.Vy));
+		md.timestepping.time_step_max=1;
 		md.timestepping.time_step_min=0.01;
 		md.timestepping.start_time=0;
 		md.timestepping.final_time=relaxTime;

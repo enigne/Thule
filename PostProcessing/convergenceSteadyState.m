@@ -1,4 +1,4 @@
-function [time, normDvel] = convergenceSteadyState(resolution, glacier)
+function [time, normDvel, normDH] = convergenceSteadyState(resolution, glacier)
 	projPath = ['/totten_1/chenggong/', glacier, '/'];
 	%% load model {{{
 	flowmodel = 'SSA';
@@ -15,7 +15,10 @@ function [time, normDvel] = convergenceSteadyState(resolution, glacier)
 	disp('Loading model done!'); %}}}
 	%% compute diff vel {{{
 	Vel = cell2mat({md.results.TransientSolution(:).Vel});
+	thickness = cell2mat({md.results.TransientSolution(:).Thickness});
 	time = cell2mat({md.results.TransientSolution(:).time});
 	diffVel = diff(Vel,1,2)./diff(time);
+	diffH = diff(thickness,1,2)./diff(time);
 	normDvel = sqrt(max(diffVel.^2));
+	normDH = max(abs(diffH));
 	%}}}
