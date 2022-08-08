@@ -236,7 +236,7 @@ function varargout=runme(varargin)
 
 		if (coarse_resolution>=20e3)
 			md_coarse = loadmodel(org,['Spinup_', flowmodel, coarse_suffix]);
-		elseif (coarse_resolution<=2e3)
+		elseif (coarse_resolution<=1e3)
 			md_coarse = loadmodel(org,['Pseudo_Relaxation_', flowmodel, coarse_suffix]);
 		else
 			md_coarse = loadmodel(org,['Relaxation_', flowmodel, coarse_suffix]);
