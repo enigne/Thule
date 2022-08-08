@@ -344,6 +344,24 @@ function varargout=runme(varargin)
 
 		savemodel(org,md);
 	end % }}}
+	if perform(org, ['Download_', flowmodel, suffix]) % {{{
+
+		md=loadmodel(org, ['Pseudo_Relaxation_',flowmodel, suffix]);
+		%solve
+		md.cluster = discovery('numnodes', 1, 'cpuspernode', 1);
+
+      savePath = md.miscellaneous.name;
+      disp(['Downloadng ', savePath, ' from Discovery'])
+
+      md=loadresultsfromcluster(md,'runtimename', savePath);
+
+      savemodel(org,md);
+
+      if ~strcmp(savePath, './')
+         system(['mkdir -p ./Models/', savePath]);
+         system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
+      end
+	end % }}}
 
 	if perform(org, ['LoadInterpolant', suffix]) % {{{
 
