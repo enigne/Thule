@@ -3,7 +3,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [11];
+experiments = [12];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
@@ -80,4 +80,14 @@ if any(experiments == 11) % exp 11: download 1km results from discovery {{{
 		'savePath', [savePath],...
 		'cluster name', 'discovery',...
 		'resolution', resolution, 'flow model', 'SSA');
+end %}}}
+if any(experiments == 12) % exp 12: relaxation on 1km mesh, discovery {{{
+	steps = [7];
+	resolution = 1e3;
+	relaxT = 2000;
+	savePath = [today, '_relaxation_1km'];
+	md = runme('steps', steps, ...
+		'savePath', [savePath],...
+		'cluster name', 'discovery',...
+		'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
 end %}}}

@@ -10,10 +10,14 @@ function [time, normDvel, normDH] = convergenceSteadyState(resolution, glacier)
 	else
 		stepName = 'Relaxation_';
 	end
-	org=organizer('repository', [projPath, '/Models/'], 'prefix', ['Model_' glacier '_'], 'steps', 0);
+	if resolution <=1e3
+		org=organizer('repository', [projPath, '/Models/20220803_pseudo_relaxation_1km/'], 'prefix', ['Model_' glacier '_'], 'steps', 0);
+	else
+		org=organizer('repository', [projPath, '/Models/'], 'prefix', ['Model_' glacier '_'], 'steps', 0);
+	end
 	md =loadmodel(org, [stepName, flowmodel, suffix]);
 	disp('Loading model done!'); %}}}
-	%% compute diff vel {{{
+	%% compute diff vel and H {{{
 	Vel = cell2mat({md.results.TransientSolution(:).Vel});
 	thickness = cell2mat({md.results.TransientSolution(:).Thickness});
 	time = cell2mat({md.results.TransientSolution(:).time});

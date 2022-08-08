@@ -271,9 +271,9 @@ function varargout=runme(varargin)
 
 		% Set parameters
 		md.inversion.iscontrol=0;
-		md.settings.output_frequency = 100;
+		md.settings.output_frequency = 500;
 		md.timestepping=timesteppingadaptive();
-		md.timestepping.time_step_max=0.9*(cfl_step(md, md.results.StressbalanceSolution.Vx, md.results.StressbalanceSolution.Vy));
+		md.timestepping.time_step_max=1;
 		md.timestepping.time_step_min=0.01;
 		md.timestepping.start_time=0;
 		md.timestepping.final_time=relaxTime;
@@ -292,10 +292,13 @@ function varargout=runme(varargin)
 		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation'};
 		md.stressbalance.requested_outputs={'default'};
 
+		md.settings.waitonlock = waitonlock; % do not wait for complete
+		md.miscellaneous.name = [savePath];
+
 		%solve
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		md.cluster = cluster;
-		md=solve(md,'tr');
+		md=solve(md,'tr', 'runtimename', false);
 
 		savemodel(org,md);
 	end % }}}
