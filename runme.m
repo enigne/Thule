@@ -229,7 +229,7 @@ function varargout=runme(varargin)
 		savemodel(org,md);
 	end % }}}
 
-	%%%%%% Step 6--15
+	%%%%%% Step 6--10
 	% project spinup solution a finer resolution, the reason to not do refinement directly is because the domain is a circle
 	if perform(org, ['Reinitialize_', flowmodel, suffix])% {{{
 		md=loadmodel(org, ['Stressbalance_',flowmodel, suffix]);
@@ -365,7 +365,44 @@ function varargout=runme(varargin)
          system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
       end
 	end % }}}
+	if perform(org, ['Check_', flowmodel, suffix]) % {{{
 
+		md=loadmodel(org, ['Relaxation_',flowmodel, suffix]);
+
+		% Set parameters
+		md.settings.output_frequency = 1;
+		md.timestepping=timesteppingadaptive();
+		md.timestepping.time_step_max=1;
+		md.timestepping.time_step_min=0.01;
+		md.timestepping.start_time=0;
+		md.timestepping.final_time=1;
+
+		% We set the transient parameters
+		md.transient.ismovingfront=0;
+		md.transient.isthermal=0;
+		md.transient.isstressbalance=1;
+		md.transient.ismasstransport=1;
+		md.transient.isgroundingline=1;
+		md.groundingline.migration = 'SubelementMigration';
+
+		md.verbose.solution=1;
+		md.verbose.convergence=0;
+		md.cluster = cluster;
+		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation'};
+		md.stressbalance.requested_outputs={'default'};
+
+		md.settings.waitonlock = waitonlock; % do not wait for complete
+		md.miscellaneous.name = [savePath];
+
+		%solve
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.cluster = cluster;
+		md=solve(md,'tr', 'runtimename', false);
+
+		savemodel(org,md);
+	end % }}}
+
+	%%%%%% Step 11--15
 	if perform(org, ['LoadInterpolant', suffix]) % {{{
 
 		md=loadmodel(org, ['Param', suffix]);

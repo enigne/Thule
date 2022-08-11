@@ -3,7 +3,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [10, 12];
+experiments = [11];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
@@ -75,7 +75,7 @@ end %}}}
 if any(experiments == 11) % exp 11: download 1km results from discovery {{{
 	steps = [9];
 	resolution = 1e3;
-	savePath = ['20220803_pseudo_relaxation_1km'];
+	savePath = ['20220808_pseudo_relaxation_1km'];
 	md = runme('steps', steps, ...
 		'savePath', [savePath],...
 		'cluster name', 'discovery',...
@@ -89,5 +89,14 @@ if any(experiments == 12) % exp 12: relaxation on 1km mesh, discovery {{{
 	md = runme('steps', steps, ...
 		'savePath', [savePath],...
 		'cluster name', 'discovery',...
+		'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
+end %}}}
+if any(experiments == 13) % exp 13: check not converging on 1km mesh, totten {{{
+	steps = [10];
+	resolution = 1e3;
+	relaxT = 2000;
+	savePath = [today, '_check_relaxation_1km'];
+	md = runme('steps', steps, ...
+		'savePath', [savePath],...
 		'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
 end %}}}
