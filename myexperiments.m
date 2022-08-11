@@ -3,7 +3,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [11];
+experiments = [12];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
@@ -94,9 +94,9 @@ end %}}}
 if any(experiments == 13) % exp 13: check not converging on 1km mesh, totten {{{
 	steps = [10];
 	resolution = 1e3;
-	relaxT = 2000;
+%	flowmodel = 'MOLHO';
 	savePath = [today, '_check_relaxation_1km'];
 	md = runme('steps', steps, ...
 		'savePath', [savePath],...
-		'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
+		'resolution', resolution, 'flow model', flowmodel);
 end %}}}

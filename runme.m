@@ -367,8 +367,15 @@ function varargout=runme(varargin)
 	end % }}}
 	if perform(org, ['Check_', flowmodel, suffix]) % {{{
 
-		md=loadmodel(org, ['Relaxation_',flowmodel, suffix]);
+		md=loadmodel(org, ['Relaxation_SSA', suffix]);
 
+		% set flow model
+		md=setflowequation(md,flowmodel,'all');
+		if strcmp(flowmodel, 'MOLHO')
+			disp('  Set boundary conditions for MOLHO');
+			md = SetMOLHOBC(md);
+			md.stressbalance.requested_outputs={'default','VxSurface','VySurface','VxShear','VyShear','VxBase','VyBase'};
+		end
 		% Set parameters
 		md.settings.output_frequency = 1;
 		md.timestepping=timesteppingadaptive();
@@ -395,7 +402,7 @@ function varargout=runme(varargin)
 		md.miscellaneous.name = [savePath];
 
 		%solve
-		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
 		md.cluster = cluster;
 		md=solve(md,'tr', 'runtimename', false);
 
