@@ -297,6 +297,7 @@ function varargout=runme(varargin)
 
 		%solve
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.settings.solver_residue_threshold = 1e-4;
 		md.cluster = cluster;
 		md=solve(md,'tr', 'runtimename', false);
 
@@ -342,6 +343,7 @@ function varargout=runme(varargin)
 
 		%solve
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.settings.solver_residue_threshold = 1e-4;
 		md.cluster = cluster;
 		md=solve(md,'tr','runtimename',false);
 

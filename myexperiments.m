@@ -3,7 +3,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [12];
+experiments = [14];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
@@ -99,4 +99,23 @@ if any(experiments == 13) % exp 13: check not converging on 1km mesh, totten {{{
 	md = runme('steps', steps, ...
 		'savePath', [savePath],...
 		'resolution', resolution, 'flow model', flowmodel);
+end %}}}
+
+% investigate convergence problem
+if any(experiments == 14) % exp 14: set resideu_thres=1e-4{{{
+	steps = [7];
+	resolution = 1e3;
+	relaxT = 500;
+	savePath = [today, '_relaxation_1km'];
+	md = runme('steps', steps, ...
+		'savePath', [savePath],...
+		'cluster name', 'discovery',...
+		'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
+
+	steps = [8];
+	savePath = [today, '_pseudo_relaxation_1km'];
+	md = runme('steps', steps, ...
+		'savePath', [savePath],...
+		'cluster name', 'discovery',...
+		'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
 end %}}}
