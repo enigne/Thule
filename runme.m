@@ -296,8 +296,8 @@ function varargout=runme(varargin)
 		md.miscellaneous.name = [savePath];
 
 		%solve
-		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
-		md.settings.solver_residue_threshold = 1e-4;
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		%md.settings.solver_residue_threshold = 1e-4;
 		md.cluster = cluster;
 		md=solve(md,'tr', 'runtimename', false);
 
@@ -342,8 +342,8 @@ function varargout=runme(varargin)
 		md.miscellaneous.name = [savePath];
 
 		%solve
-		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
-		md.settings.solver_residue_threshold = 1e-4;
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		%md.settings.solver_residue_threshold = 1e-4;
 		md.cluster = cluster;
 		md=solve(md,'tr','runtimename',false);
 
