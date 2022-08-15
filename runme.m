@@ -357,7 +357,7 @@ function varargout=runme(varargin)
 		%solve
 		md.cluster = discovery('numnodes', 1, 'cpuspernode', 1);
 
-      savePath = md.miscellaneous.name;
+      md.miscellaneous.name = savePath;
       disp(['Downloadng ', savePath, ' from Discovery'])
 
       md=loadresultsfromcluster(md,'runtimename', savePath);
