@@ -45,7 +45,7 @@ function varargout=runme(varargin)
 	levelsetReinit = getfieldvalue(options,'levelset reinitialize', 10);
 	% }}}
 	%GET jobTime for running on supercomputer: 100 hours{{{
-	jobTime = getfieldvalue(options,'jobTime', 100);
+	jobTime = getfieldvalue(options,'jobTime', 24);
 	% }}}
 
 	%Load some necessary codes {{{
@@ -296,7 +296,8 @@ function varargout=runme(varargin)
 		md.miscellaneous.name = [savePath];
 
 		%solve
-		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		%md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		%md.settings.solver_residue_threshold = 1e-4;
 		md.cluster = cluster;
 		md=solve(md,'tr', 'runtimename', false);
@@ -342,7 +343,8 @@ function varargout=runme(varargin)
 		md.miscellaneous.name = [savePath];
 
 		%solve
-		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		%md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		%md.settings.solver_residue_threshold = 1e-4;
 		md.cluster = cluster;
 		md=solve(md,'tr','runtimename',false);
