@@ -3,7 +3,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [15];
+experiments = [14];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
@@ -105,7 +105,7 @@ end %}}}
 if any(experiments == 14) % exp 14: set resideu_thres=1e-6 {{{
 	steps = [7];
 	resolution = 1e3;
-	relaxT = 500;
+	relaxT = 5000;
 	savePath = [today, '_relaxation_1km'];
 	md = runme('steps', steps, ...
 		'savePath', [savePath],...
