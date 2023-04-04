@@ -44,7 +44,7 @@ function varargout=runme(varargin)
 	%GET reinitialization for levelset: 10 {{{
 	levelsetReinit = getfieldvalue(options,'levelset reinitialize', 10);
 	% }}}
-	%GET jobTime for running on supercomputer: 100 hours{{{
+	%GET jobTime for running on supercomputer: 24 hours{{{
 	jobTime = getfieldvalue(options,'jobTime', 24);
 	% }}}
 

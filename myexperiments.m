@@ -1,9 +1,10 @@
+% The main script to run Thule experiments
 clear
 close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [14];
+experiments = [15];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
@@ -123,10 +124,7 @@ if any(experiments == 15) % exp 15: download 1km results from discovery {{{
 	steps = [9];
 	resolution = 1e3;
 	savePaths = {
-	'20220812_pseudo_relaxation_1km',...
-	'20220812_relaxation_1km',...
-	'20220812_GAMG_relaxation_1km',...
-	'20220812_GAMG_pseudo_relaxation_1km',...
+	'20220826_relaxation_1km',...
 	};
 	for i = 1:length(savePaths)
 		md = runme('steps', steps, ...
