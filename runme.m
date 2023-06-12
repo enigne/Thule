@@ -14,8 +14,8 @@ function varargout=runme(varargin)
 	%GET steps: [1]{{{
 	steps = getfieldvalue(options,'steps',[1]);
 	% }}}
-	%GET flow model: 'MOLHO'{{{
-	flowmodel = getfieldvalue(options,'flow model', 'MOLHO');
+	%GET flow model: 'SSA'{{{
+	flowmodel = getfieldvalue(options,'flow model', 'SSA');
 	% }}}
 	%GET load from interpolant: 0 {{{
 	loadFromInterpolant = getfieldvalue(options,'load from interpolant', 0);
@@ -81,7 +81,7 @@ function varargout=runme(varargin)
 
 	%%%%%% Step 1--5
 	if perform(org, ['Mesh', suffix])% {{{
-		md = roundmesh(model(), L, resolution);
+		md = triangle(model(), './Exp/Square.exp', resolution);
 		md.miscellaneous.name = [glacier, '_', num2str(resolution/1000), 'km'];
 
 		savemodel(org,md);
@@ -93,11 +93,11 @@ function varargout=runme(varargin)
 		md=setflowequation(md,'SSA','all');
 
 		% parameters for CalvingMIP
-		md.constants.yts = 365.2422*3600*24;
 		md.constants.g = 9.81;				% m s^-2
 		md.materials.rho_ice = 917.;		% kg m^-3
-		md.materials.rho_water = 1030.;	% kg m^-3
-		md.materials.rheology_B =  ((2.9377e-9*1e-9)/md.constants.yts)^(-1/3)*ones(md.mesh.numberofvertices,1);
+		md.materials.rho_water = 1028.;	% kg m^-3
+		md.constants.yts = 31556926;     % equivalent to 365.2422*3600*24;
+		md.materials.rheology_B = ((2.9377e-9*1e-9)/md.constants.yts)^(-1/3)*ones(md.mesh.numberofvertices,1);  % unit in CalvingMIP: kPa^-3 a^-1, in ISSM: Pa s^1/3
 		md.materials.rheology_n = 3*ones(md.mesh.numberofelements,1);
 
 		% SMB
@@ -107,8 +107,10 @@ function varargout=runme(varargin)
 
 		% friction 
 		md.friction = frictionweertman();
+		% In CalvingMIP setting: u_b=C*tau_b^m, C= 1e-3 m a^-1 kPa^-3
+		% In ISSM: tau_b = C^(-1/m) * u_b^(1/m), convert to (m s^-1 Pa^-3)^0.5, 
+		md.friction.C = sqrt((1e-12/md.constants.yts)^(-1/3)) * ones(md.mesh.numberofvertices,1); 
 		md.friction.m = 3.*ones(md.mesh.numberofelements,1); % m=3
-		md.friction.C = sqrt((1e-12/md.constants.yts)^(-1/3)) * ones(md.mesh.numberofvertices,1); % (m s^-1 Pa^-3)^0.5
 
 		% geometry
 		R=800e3; Bc=900; Bl=-2000; Ba=1100; rc=0;
@@ -120,7 +122,8 @@ function varargout=runme(varargin)
 		a=Bc - (Bc-Bl)*(r-rc ).^2./(R-rc ).^2;
 		B=Ba*cos(3*pi*r./l)+a ;
 		md.geometry.bed = B;
-		minimal_thickness = md.masstransport.min_thickness;
+		minimal_thickness = 10;
+		md.masstransport.min_thickness=minimal_thickness;
 		md.geometry.base = md.geometry.bed;
 		md.geometry.surface = md.geometry.base + minimal_thickness;
 
