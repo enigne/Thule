@@ -20,8 +20,8 @@ function varargout=runme(varargin)
 	%GET resolution: 5e3{{{
 	resolution = getfieldvalue(options,'resolution', 5e3);
 	% }}}
-	%GET coarse resolution: 20e3{{{
-	coarse_resolution = getfieldvalue(options,'coarse resolution', 20e3);
+	%GET coarse resolution: 10e3{{{
+	coarse_resolution = getfieldvalue(options,'coarse resolution', 10e3);
 	% }}}
 	%GET final time: 1{{{
 	finalTime = getfieldvalue(options,'final time', 1);
@@ -227,7 +227,7 @@ function varargout=runme(varargin)
 	%%%%%% Step 6--10
 	% project spinup solution a finer resolution, the reason to not do refinement directly is because the domain is a circle
 	if perform(org, ['Reinitialize_', flowmodel, suffix])% {{{
-		md=loadmodel(org, ['Stressbalance_',flowmodel, suffix]);
+		md=loadmodel(org, ['SetBC_',flowmodel, suffix]);
 
 		if (coarse_resolution>=20e3)
 			md_coarse = loadmodel(org,['Spinup_', flowmodel, coarse_suffix]);
@@ -245,16 +245,23 @@ function varargout=runme(varargin)
 		md.geometry.thickness = md.geometry.surface - md.geometry.base;
 		md=sethydrostaticmask(md);
 
-		pos = find(md.mask.ocean_levelset>0);
-		md.geometry.base(pos) = md.geometry.bed(pos);
-		md.geometry.thickness = md.geometry.surface - md.geometry.base;
-		md.geometry.thickness(md.geometry.thickness<minimal_thickness) = minimal_thickness;
-
 		md.initialization.vx = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Vx, md.mesh.x, md.mesh.y);
 		md.initialization.vy = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Vy, md.mesh.x, md.mesh.y);
 		md.initialization.vel = sqrt(md.initialization.vx.^2 + md.initialization.vy.^2);
 
+		if strcmp(flowmodel, 'MOLHO')
+			md.stressbalance.requested_outputs={'default','VxSurface','VySurface','VxShear','VyShear','VxBase','VyBase'};
+		end
+
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.verbose.convergence =1;
+		md.cluster = cluster;
+
 		md=solve(md,'sb');
+
+		%Set as initial vx and vy for later
+		md.initialization.vx = md.results.StressbalanceSolution.Vx;
+		md.initialization.vy = md.results.StressbalanceSolution.Vy;
 		savemodel(org,md);
 	end %}}}
 	if perform(org, ['Relaxation_', flowmodel, suffix]) % {{{

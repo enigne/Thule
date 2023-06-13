@@ -4,23 +4,23 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [1];
+experiments = [2];
 flowmodel = 'SSA';
 
-if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=20km {{{
+if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=10km {{{
 	steps = [1:5];
 	resolution = 10e3;
 	T = 20000;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'final time', T);
 end %}}}
 if any(experiments == 2) % exp 2: project to 1km mesh and reinitialize {{{
-	steps = [1:4, 6];
+	steps = [1:3, 6];
 	resolution = 1e3;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel);
 end %}}}
-if any(experiments == 3) % exp 3: relaxation on 10km mesh {{{
+if any(experiments == 3) % exp 3: relaxation on 1km mesh {{{
 	steps = [7];
-	resolution = 10e3;
+	resolution = 1e3;
 	relaxT = 10000;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
 end %}}}
