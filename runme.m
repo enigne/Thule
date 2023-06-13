@@ -17,9 +17,6 @@ function varargout=runme(varargin)
 	%GET flow model: 'SSA'{{{
 	flowmodel = getfieldvalue(options,'flow model', 'SSA');
 	% }}}
-	%GET load from interpolant: 0 {{{
-	loadFromInterpolant = getfieldvalue(options,'load from interpolant', 0);
-	% }}}
 	%GET resolution: 5e3{{{
 	resolution = getfieldvalue(options,'resolution', 5e3);
 	% }}}
@@ -67,7 +64,7 @@ function varargout=runme(varargin)
 		cluster.time = jobTime;
 		waitonlock = 0;
 	else
-		cluster=generic('name',oshostname(),'np', 40);
+		cluster=generic('name',oshostname(),'np', 80);
 		waitonlock = Inf;
 	end
 	clear clustername
@@ -144,12 +141,7 @@ function varargout=runme(varargin)
 	end%}}}
 	if perform(org, ['SetBC_', flowmodel, suffix])% {{{
 
-		if loadFromInterpolant
-			disp('  Use steady state interpolant from Hilmar for the initial condition');
-			md=loadmodel(org, ['LoadInterpolant', suffix]);
-		else
-			md=loadmodel(org, ['Param', suffix]);
-		end
+		md=loadmodel(org, ['Param', suffix]);
 
 		% set flow model
 		md=setflowequation(md,flowmodel,'all');
