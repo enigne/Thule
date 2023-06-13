@@ -13,14 +13,14 @@ if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=10km {{{
 	T = 20000;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'final time', T);
 end %}}}
-if any(experiments == 2) % exp 2: project to 1km mesh and reinitialize {{{
+if any(experiments == 2) % exp 2: project to 5km mesh and reinitialize {{{
 	steps = [1:3, 6];
-	resolution = 1e3;
+	resolution = 5e3;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel);
 end %}}}
-if any(experiments == 3) % exp 3: relaxation on 1km mesh {{{
+if any(experiments == 3) % exp 3: relaxation on 5km mesh {{{
 	steps = [7];
-	resolution = 1e3;
+	resolution = 5e3;
 	relaxT = 10000;
 	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'relaxation time', relaxT);
 end %}}}
