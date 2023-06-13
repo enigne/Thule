@@ -59,10 +59,6 @@ function varargout=runme(varargin)
 		cluster=discovery('numnodes',1,'cpuspernode',64);
 		cluster.time = jobTime;
 		waitonlock = 0;
-	elseif strcmpi(clustername,'greenplanet')
-		cluster=greenplanet('numnodes',1,'cpuspernode',16,'port',0);
-		cluster.time = jobTime;
-		waitonlock = 0;
 	else
 		cluster=generic('name',oshostname(),'np', 80);
 		waitonlock = Inf;
@@ -241,8 +237,22 @@ function varargout=runme(varargin)
 		minimal_thickness = md.masstransport.min_thickness;
 
 		md.geometry.surface = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Surface, md.mesh.x, md.mesh.y);
-		md.geometry.base = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Base, md.mesh.x, md.mesh.y);
-		md.geometry.thickness = md.geometry.surface - md.geometry.base;
+		md.geometry.thickness = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Thickness, md.mesh.x, md.mesh.y);
+		md.geometry.base = md.geometry.surface - md.geometry.thickness;
+		
+		% adjust the base
+		pos = (md.geometry.base < md.geometry.bed);
+		disp(['  Found ', num2str(sum(pos)), ' nodes from the interpolation, where base<bed'])
+		md.geometry.base(pos) = md.geometry.bed(pos);
+		md.geometry.surface = md.geometry.base + md.geometry.thickness;
+
+		md=sethydrostaticmask(md);
+
+		% set grounded ice base =bed
+		pos1 = (md.mask.ocean_levelset>0);
+		md.geometry.base(pos1) = md.geometry.bed(pos1);
+		md.geometry.surface = md.geometry.base + md.geometry.thickness;
+
 		md=sethydrostaticmask(md);
 
 		md.initialization.vx = InterpFromMeshToMesh2d(md_coarse.mesh.elements, md_coarse.mesh.x, md_coarse.mesh.y, md_coarse.results.TransientSolution(end).Vx, md.mesh.x, md.mesh.y);
@@ -295,7 +305,11 @@ function varargout=runme(varargin)
 		md.stressbalance.requested_outputs={'default'};
 
 		md.settings.waitonlock = waitonlock; % do not wait for complete
-		md.miscellaneous.name = [savePath];
+		if strcmpi(md.cluster.name, 'totten')
+			md.miscellaneous.name = ['Thule_transient', suffix];
+		else
+			md.miscellaneous.name = [savePath];
+		end
 
 		%solve
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
