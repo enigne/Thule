@@ -334,7 +334,7 @@ function varargout=runme(varargin)
 		md.timestepping.time_step_max=1;
 		md.timestepping.time_step_min=0.01;
 		md.timestepping.start_time=0;
-		md.timestepping.final_time=1000;
+		md.timestepping.final_time=relaxTime;
 
 		% We set the transient parameters
 		md.transient.ismovingfront=1;
