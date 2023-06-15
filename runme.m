@@ -60,7 +60,7 @@ function varargout=runme(varargin)
 		cluster.time = jobTime;
 		waitonlock = 0;
 	else
-		cluster=generic('name',oshostname(),'np', 80);
+		cluster=generic('name',oshostname(),'np', 40);
 		waitonlock = Inf;
 	end
 	clear clustername
@@ -370,12 +370,15 @@ function varargout=runme(varargin)
 
 		%solve
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
-		%md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		md.settings.solver_residue_threshold = 1e-5;
 		md.cluster = cluster;
 		md=solve(md,'tr', 'runtimename', false);
 
 		savemodel(org,md);
+		if ~strcmp(savePath, './')
+			system(['mkdir -p ./Models/', savePath]);
+			system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
+		end
 	end % }}}
 
 
