@@ -322,7 +322,8 @@ function varargout=runme(varargin)
 	end % }}}
 	if perform(org, ['Exp3_', flowmodel, suffix]) % {{{
 
-		md=loadmodel(org, ['Relaxation_',flowmodel, suffix]);
+		%md=loadmodel(org, ['Relaxation_',flowmodel, suffix]);
+		md=loadmodel(org, ['Reinitialize_',flowmodel, suffix]);
 
 		md.initialization.vx = md.results.StressbalanceSolution.Vx;
 		md.initialization.vy = md.results.StressbalanceSolution.Vy;
