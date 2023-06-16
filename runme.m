@@ -60,7 +60,7 @@ function varargout=runme(varargin)
 		cluster.time = jobTime;
 		waitonlock = 0;
 	else
-		cluster=generic('name',oshostname(),'np', 40);
+		cluster=generic('name',oshostname(),'np', 80);
 		waitonlock = Inf;
 	end
 	clear clustername
@@ -196,7 +196,7 @@ function varargout=runme(varargin)
 		md.timestepping.time_step_max=100;
 		md.timestepping.time_step_min=0.1;
 		md.timestepping.start_time=0;
-		md.timestepping.final_time=finalTime;
+		md.timestepping.final_time=10000;
 
 		% We set the transient parameters
 		md.transient.ismovingfront=0;
@@ -225,7 +225,7 @@ function varargout=runme(varargin)
 	if perform(org, ['Reinitialize_', flowmodel, suffix])% {{{
 		md=loadmodel(org, ['SetBC_',flowmodel, suffix]);
 
-		if (coarse_resolution>=20e3)
+		if (coarse_resolution>=10e3)
 			md_coarse = loadmodel(org,['Spinup_', flowmodel, coarse_suffix]);
 		elseif (coarse_resolution<=1e3)
 			md_coarse = loadmodel(org,['Pseudo_Relaxation_', flowmodel, coarse_suffix]);
@@ -283,9 +283,9 @@ function varargout=runme(varargin)
 
 		% Set parameters
 		md.inversion.iscontrol=0;
-		md.settings.output_frequency = 500;
+		md.settings.output_frequency = 100;
 		md.timestepping=timesteppingadaptive();
-		md.timestepping.time_step_max=1;
+		md.timestepping.time_step_max=100;
 		md.timestepping.time_step_min=0.01;
 		md.timestepping.start_time=0;
 		md.timestepping.final_time=relaxTime;
@@ -329,9 +329,9 @@ function varargout=runme(varargin)
 
 		% Set parameters
 		md.inversion.iscontrol=0;
-		md.settings.output_frequency = 500;
+		md.settings.output_frequency = 100;
 		md.timestepping=timesteppingadaptive();
-		md.timestepping.time_step_max=1;
+		md.timestepping.time_step_max=100;
 		md.timestepping.time_step_min=0.01;
 		md.timestepping.start_time=0;
 		md.timestepping.final_time=relaxTime;
