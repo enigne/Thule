@@ -4,7 +4,7 @@
 function pf = project2Profile(md, pf)
 	px = pf.x;
 	py = pf.y;
-	pf.xDist = cumsum(sqrt(px.^2+py.^2));
+	pf.xDist = sqrt((px-px(1)).^2+(py-py(1)).^2);
 
 	index = md.mesh.elements;
 	x = md.mesh.x;
@@ -14,3 +14,4 @@ function pf = project2Profile(md, pf)
 	pf.thickness = InterpFromMeshToMesh2d(index, x, y, md.results.TransientSolution(end).Thickness, px, py);
 	pf.vx = InterpFromMeshToMesh2d(index, x, y, md.results.TransientSolution(end).Vx, px, py);
 	pf.vy = InterpFromMeshToMesh2d(index, x, y, md.results.TransientSolution(end).Vy, px, py);
+end
