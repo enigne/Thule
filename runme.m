@@ -381,6 +381,70 @@ function varargout=runme(varargin)
 			system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
 		end
 	end % }}}
+	if perform(org, ['Exp4_', flowmodel, suffix]) % {{{
+
+		md=loadmodel(org, ['Exp3',flowmodel, suffix]);
+
+		md.initialization.vx = md.results.TransientSolution(end).Vx;
+		md.initialization.vy = md.results.TransientSolution(end).Vy;
+
+		% Set parameters
+		md.inversion.iscontrol=0;
+		md.settings.output_frequency = 100;
+		md.timestepping=timestepping();
+		md.timestepping.start_time=0;
+		md.timestepping.final_time=500;
+		md.timestepping.time_step=cfl_step(md, md.initialization.vx, md.initialization.vy);
+
+		% We set the transient parameters
+		md.transient.ismovingfront=1;
+		md.transient.isthermal=0;
+		md.transient.isstressbalance=1;
+		md.transient.ismasstransport=1;
+		md.transient.isgroundingline=1;
+		md.groundingline.migration = 'SubelementMigration';
+
+		% set the calving law
+		md.calving=calvingcalvingmip();
+		md.calving.experiment = 4;  % c=v
+		md.frontalforcings.meltingrate = zeros(md.mesh.numberofvertices,1);
+
+		% set Wv = -750*sin(2*pi*t/1000);
+		Wt = [0:md.timestepping.time_step:500];
+		Wv = -750*sin(2*pi*Wt/1000);
+		md.frontalforcings.ablationrate =  Wv *ones(md.mesh.numberofvertices,1);
+		
+		md.levelset.spclevelset = NaN(md.mesh.numberofvertices,1);
+		pos = find(md.mesh.vertexonboundary);
+		md.levelset.spclevelset(pos) = md.mask.ice_levelset(pos);
+		md.levelset.stabilization = 5;
+		md.levelset.reinit_frequency = 50;
+
+		md.verbose.solution=1;
+		md.verbose.convergence=0;
+		md.cluster = cluster;
+		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation', 'MaskOceanLevelset', 'MaskIceLevelset', 'CalvingCalvingrate', 'CalvingMeltingrate'};
+		md.stressbalance.requested_outputs={'default'};
+
+		md.settings.waitonlock = waitonlock; % do not wait for complete
+		if strcmpi(md.cluster.name, 'totten')
+			md.miscellaneous.name = ['Thule_transient', suffix];
+		else
+			md.miscellaneous.name = [savePath];
+		end
+
+		%solve
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		md.settings.solver_residue_threshold = 1e-5;
+		md.cluster = cluster;
+		md=solve(md,'tr', 'runtimename', false);
+
+		savemodel(org,md);
+		if ~strcmp(savePath, './')
+			system(['mkdir -p ./Models/', savePath]);
+			system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
+		end
+	end % }}}
 
 
 
