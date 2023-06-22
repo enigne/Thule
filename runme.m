@@ -393,7 +393,7 @@ function varargout=runme(varargin)
 		md.settings.output_frequency = 100;
 		md.timestepping=timestepping();
 		md.timestepping.start_time=0;
-		md.timestepping.final_time=500;
+		md.timestepping.final_time=1000;
 		md.timestepping.time_step=cfl_step(md, md.initialization.vx, md.initialization.vy);
 
 		% We set the transient parameters
