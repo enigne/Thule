@@ -60,7 +60,7 @@ function varargout=runme(varargin)
 		cluster.time = jobTime;
 		waitonlock = 0;
 	else
-		cluster=generic('name',oshostname(),'np', 80);
+		cluster=generic('name',oshostname(),'np', 40);
 		waitonlock = Inf;
 	end
 	clear clustername
@@ -383,7 +383,7 @@ function varargout=runme(varargin)
 	end % }}}
 	if perform(org, ['Exp4_', flowmodel, suffix]) % {{{
 
-		md=loadmodel(org, ['Exp3',flowmodel, suffix]);
+		md=loadmodel(org, ['Exp3_',flowmodel, suffix]);
 
 		md.initialization.vx = md.results.TransientSolution(end).Vx;
 		md.initialization.vy = md.results.TransientSolution(end).Vy;
@@ -412,7 +412,7 @@ function varargout=runme(varargin)
 		% set Wv = -750*sin(2*pi*t/1000);
 		Wt = [0:md.timestepping.time_step:500];
 		Wv = -750*sin(2*pi*Wt/1000);
-		md.frontalforcings.ablationrate =  Wv *ones(md.mesh.numberofvertices,1);
+		md.frontalforcings.ablationrate = [ones(md.mesh.numberofvertices,1) * Wv; Wt];
 		
 		md.levelset.spclevelset = NaN(md.mesh.numberofvertices,1);
 		pos = find(md.mesh.vertexonboundary);
