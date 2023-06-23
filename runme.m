@@ -390,7 +390,7 @@ function varargout=runme(varargin)
 
 		% Set parameters
 		md.inversion.iscontrol=0;
-		md.settings.output_frequency = 100;
+		md.settings.output_frequency = 10;
 		md.timestepping=timestepping();
 		md.timestepping.start_time=0;
 		md.timestepping.final_time=1000;
@@ -417,6 +417,10 @@ function varargout=runme(varargin)
 		md.levelset.spclevelset = NaN(md.mesh.numberofvertices,1);
 		pos = find(md.mesh.vertexonboundary);
 		md.levelset.spclevelset(pos) = md.mask.ice_levelset(pos);
+		% set the ice free region at the initial state to be no ice forever
+		pos1 = find(md.mask.ice_levelset>0);
+		md.levelset.spclevelset(pos1) = md.mask.ice_levelset(pos1);
+
 		md.levelset.stabilization = 5;
 		md.levelset.reinit_frequency = 50;
 
