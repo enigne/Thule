@@ -414,12 +414,15 @@ function varargout=runme(varargin)
 		Wv = -750*sin(2*pi*Wt/1000);
 		md.frontalforcings.ablationrate = [ones(md.mesh.numberofvertices,1) * Wv; Wt];
 		
-		md.levelset.spclevelset = NaN(md.mesh.numberofvertices,1);
+		md.levelset.spclevelset = NaN(md.mesh.numberofvertices+1,4);
 		pos = find(md.mesh.vertexonboundary);
-		md.levelset.spclevelset(pos) = md.mask.ice_levelset(pos);
+		md.levelset.spclevelset(pos, 1) = md.mask.ice_levelset(pos);
+		md.levelset.spclevelset(pos, 2) = md.mask.ice_levelset(pos);
 		% set the ice free region at the initial state to be no ice forever
 		pos1 = find(md.mask.ice_levelset>0);
-		md.levelset.spclevelset(pos1) = md.mask.ice_levelset(pos1);
+		md.levelset.spclevelset(pos1, 3) = sign(md.mask.ice_levelset(pos1));
+		md.levelset.spclevelset(pos1, 4) = sign(md.mask.ice_levelset(pos1));
+		md.levelset.spclevelset(end,1:4) = [0,500,500.1,1000]
 
 		md.levelset.stabilization = 5;
 		md.levelset.reinit_frequency = 50;
@@ -438,7 +441,8 @@ function varargout=runme(varargin)
 		end
 
 		%solve
-		md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		%md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		md.settings.solver_residue_threshold = 1e-5;
 		md.cluster = cluster;
 		md=solve(md,'tr', 'runtimename', false);
