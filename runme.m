@@ -390,11 +390,15 @@ function varargout=runme(varargin)
 
 		% Set parameters
 		md.inversion.iscontrol=0;
-		md.settings.output_frequency = 10;
 		md.timestepping=timestepping();
 		md.timestepping.start_time=0;
 		md.timestepping.final_time=1000;
-		md.timestepping.time_step=cfl_step(md, md.initialization.vx, md.initialization.vy);
+
+		% depend on the resolution, 5km->dt=1, 2km->dt=0.4, 1km->dt=0.2 
+
+		%md.timestepping.time_step=cfl_step(md, md.initialization.vx, md.initialization.vy);
+		md.timestepping.time_step = 1*resolution/5000;
+		md.settings.output_frequency = 5000/resolution;
 
 		% We set the transient parameters
 		md.transient.ismovingfront=1;
@@ -422,7 +426,7 @@ function varargout=runme(varargin)
 		pos1 = find(md.mask.ice_levelset>0);
 		md.levelset.spclevelset(pos1, 3) = sign(md.mask.ice_levelset(pos1));
 		md.levelset.spclevelset(pos1, 4) = sign(md.mask.ice_levelset(pos1));
-		md.levelset.spclevelset(end,1:4) = [0,500,500.1,1000]
+		md.levelset.spclevelset(end,1:4) = [0,500,500.1,1000];
 
 		md.levelset.stabilization = 5;
 		md.levelset.reinit_frequency = 50;
