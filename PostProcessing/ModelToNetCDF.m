@@ -28,13 +28,16 @@ function results=ModelToNetCDF(md,directoryname,expnumber,modelname,institution)
 	results.gridy = ymin:dy:ymax;
 	sizex = numel(results.gridx);
 	sizey = numel(results.gridy);
-	
+
+	% allocate matrices
 	results.vxmean = nan(sizex,sizey,length(results.Time100)); %y,x,time
 	results.vymean = nan(sizex,sizey,length(results.Time100)); %y,x,time
 	results.thickness= nan(sizex,sizey,length(results.Time100)); %y,x,time
 	results.mask= nan(sizex,sizey,length(results.Time100)); %y,x,time
 	results.base= nan(sizex,sizey,length(results.Time100)); %y,x,time
 	results.calvingrate= nan(sizex,sizey,length(results.Time100)); %y,x,time
+	results.icemask= nan(sizex,sizey,length(results.Time100)); %y,x,time
+	results.oceanmask= nan(sizex,sizey,length(results.Time100)); %y,x,time
 
 	% get the model solution into a matrix
 	x = md.mesh.x;
@@ -47,12 +50,16 @@ function results=ModelToNetCDF(md,directoryname,expnumber,modelname,institution)
 	base = [md.results.TransientSolution(:).Base];
 	calvingrate = [md.results.TransientSolution(:).CalvingCalvingrate];
 	icemask = [md.results.TransientSolution(:).MaskIceLevelset];
+	oceanmask = [md.results.TransientSolution(:).MaskOceanLevelset];
 
 	% set vel/thk in the open ocean to NaN
 	vx(icemask>0) = NaN;
 	vy(icemask>0) = NaN;
 	thickness(icemask>0) = NaN;
 	base(icemask>0) = NaN;
+
+	% bed is static
+	results.bed = transpose(InterpFromMeshToGrid(index, x, y, md.geometry.bed, results.gridx, results.gridy, NaN));
 
 	% get these data on the time100 grid
 	for i = 1:length(results.Time100)
@@ -62,28 +69,18 @@ function results=ModelToNetCDF(md,directoryname,expnumber,modelname,institution)
 		results.thickness(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, thickness(:, tid), results.gridx, results.gridy, NaN));
 		results.base(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, base(:, tid), results.gridx, results.gridy, NaN));
 		results.calvingrate(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, calvingrate(:, tid), results.gridx, results.gridy, NaN));
+		results.icemask(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, icemask(:, tid), results.gridx, results.gridy, NaN));
+		results.oceanmask(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, oceanmask(:, tid), results.gridx, results.gridy, NaN));
 	end
+
+	% mask: grounded=1, floating=2, open ocean=3
+	mask = results.icemask;
+	mask(results.icemask<0) = 1;		% grounded and floating
+	mask(results.icemask>0) = 3;		% open ocean
+	mask((results.oceanmask<0) & (results.icemask<0)) = 2;
+	results.mask = mask;		% no need to rotate
+
 	return
-	
-	[vymean]=InterpFromMeshToGrid(md.mesh.elements,md.mesh.x,md.mesh.y,md.results.TransientSolution(end).Vy,results.gridx,results.gridy,NaN);
-	results.vymean=transpose(vymean);
-	
-	[thickness]=InterpFromMeshToGrid(md.mesh.elements,md.mesh.x,md.mesh.y,md.results.TransientSolution(end).Thickness,results.gridx,results.gridy,NaN);
-	results.thickness=transpose(thickness);
-
-	mask=-md.results.TransientSolution(end).MaskIceLevelset;
-	mask(find(mask>0))=1;
-	mask(find(mask<0))=3;
-	pos=find(md.results.TransientSolution(end).MaskOceanLevelset<0 & md.results.TransientSolution(end).MaskIceLevelset<0); mask(pos)=2;
-
-	F = scatteredInterpolant(md.mesh.x,md.mesh.y,mask,'nearest','none');
-	[xq,yq]=meshgrid(results.gridx,results.gridy);
-	icemask = F(xq,yq);
-	%[icemask]=InterpFromMeshToGrid(md.mesh.elements,md.mesh.x,md.mesh.y,mask,results.gridx,results.gridy,NaN);
-	results.mask=transpose(icemask);
-
-	[bed]=InterpFromMeshToGrid(md.mesh.elements,md.mesh.x,md.mesh.y,md.geometry.bed,results.gridx,results.gridy,NaN);
-	results.bed=transpose(bed);
 
 	%}}}
 
