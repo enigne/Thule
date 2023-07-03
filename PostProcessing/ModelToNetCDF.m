@@ -56,7 +56,7 @@ function results=ModelToNetCDF(md,directoryname,expnumber,modelname,institution)
 
 	% get these data on the time100 grid
 	for i = 1:length(results.Time100)
-		[~,tid] = min(abs( results.timegrid((i-1)*100+1)-time))
+		[~,tid] = min(abs( results.timegrid((i-1)*100+1)-time));
 		results.vxmean(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, vx(:, tid), results.gridx, results.gridy, NaN));
 		results.vymean(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, vy(:, tid), results.gridx, results.gridy, NaN));
 		results.thickness(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, thickness(:, tid), results.gridx, results.gridy, NaN));

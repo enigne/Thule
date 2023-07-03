@@ -23,6 +23,8 @@ parfor i = 1:Ndata
 	end
 end
 %}}}
+results=ModelToNetCDF(mdList{1}, './Results', 'EXP4', 'SSA', 'Dartmouth');
+return
 % Generate plots{{{
 Cmap = {'#0072BD', '#D95319', '#EDB120', '#7E2F8E', '#77AC30'};
 % set the profiles
@@ -36,9 +38,14 @@ Halbrane.B.x = ones(NC,1)*(150*1e3);			Halbrane.B.y = linspace(0, 740, NC)'*1e3;
 Halbrane.C.x = ones(NC,1)*(-150*1e3);			Halbrane.C.y = linspace(0, -740, NC)'*1e3;
 Halbrane.D.x = ones(NC,1)*(150*1e3);			Halbrane.D.y = linspace(0, -740, NC)'*1e3;
 
+return
 % project solutions to the profile
 for nmd=1:Ndata
+	% get the model data
 	md = mdList{nmd};
+	time = [md.results.TransientSolution(:).time];
+
+	% get profiles
 	fn = fieldnames(Caprona);
 	disp('  Project solutions onto the profiles')
 	for i=1:numel(fn)
