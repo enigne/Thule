@@ -359,7 +359,7 @@ function varargout=runme(varargin)
 		md.verbose.solution=1;
 		md.verbose.convergence=0;
 		md.cluster = cluster;
-		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation', 'MaskOceanLevelset', 'MaskIceLevelset', 'CalvingCalvingrate', 'CalvingMeltingrate'};
+		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation', 'MaskOceanLevelset', 'MaskIceLevelset', 'CalvingCalvingrate', 'CalvingMeltingrate', 'GroundedArea','FloatingArea','IcefrontMassFluxLevelset','GroundinglineMassFlux'};
 		md.stressbalance.requested_outputs={'default'};
 
 		md.settings.waitonlock = waitonlock; % do not wait for complete
