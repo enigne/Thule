@@ -1,4 +1,4 @@
-function results=ModelToNetCDF(md,directoryname,expnumber,modelname,institution);
+function results = ModelToNetCDF(md, directoryname, expnumber, modelname, institution);
 	%Create netcdf files for an experiment
 
 	%directoryname: directory where the outputs are placed
@@ -63,7 +63,7 @@ function results=ModelToNetCDF(md,directoryname,expnumber,modelname,institution)
 		if strcmp(expnumber,'EXP1') | strcmp(expnumber,'EXP3')
 			tid = numel(time);
 		elseif strcmp(expnumber,'EXP2') | strcmp(expnumber,'EXP4')
-			[~,tid] = min(abs( results.Time1((i-1)*100+1)-time))
+			[~,tid] = min(abs( results.Time1((i-1)*100+1)-time));
 		end
 		results.vxmean(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, vx(:, tid), results.gridx, results.gridy, NaN));
 		results.vymean(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, vy(:, tid), results.gridx, results.gridy, NaN));
@@ -106,90 +106,43 @@ function results=ModelToNetCDF(md,directoryname,expnumber,modelname,institution)
 		error('not implemented yet');	
 	end
 
-	return
 	%}}}
-	%	%Profile variables {{{
-	%	disp(['loading profile variables..']);
-	%	
-	%	if strcmp(expnumber,'EXP1'),
-	%		results.timegrid=[0];
-	%	else
-	%		results.timegrid=[1:5:101];
-	%	end
-	%	
-	%	results.gridA  = -800000:5000:800000;
-	%	nA=numel(results.gridA);
-	%
-	%	results.thkA=NaN*ones(nA,length(results.timegrid));
-	%	results.sA=NaN*ones(nA,length(results.timegrid));
-	%	results.vxmeanA=NaN*ones(nA,length(results.timegrid));
-	%	results.vymeanA=NaN*ones(nA,length(results.timegrid));
-	%	results.maskA=NaN*ones(nA,length(results.timegrid));
-	%	
-	%	results.gridB  = -800000:5000:800000;
-	%	nB=numel(results.gridB);
-	%
-	%	results.thkB=NaN*ones(nB,length(results.timegrid));
-	%	results.sB=NaN*ones(nB,length(results.timegrid));
-	%	results.vxmeanB=NaN*ones(nB,length(results.timegrid));
-	%	results.vymeanB=NaN*ones(nB,length(results.timegrid));
-	%	results.maskB=NaN*ones(nB,length(results.timegrid));
-	%	
-	%	results.gridC  = -800000:5000:800000;
-	%	nC=numel(results.gridC);
-	%
-	%	results.thkC=NaN*ones(nC,length(results.timegrid));
-	%	results.sC=NaN*ones(nC,length(results.timegrid));
-	%	results.vxmeanC=NaN*ones(nC,length(results.timegrid));
-	%	results.vymeanC=NaN*ones(nC,length(results.timegrid));
-	%	results.maskC=NaN*ones(nC,length(results.timegrid));
-	%	
-	%	results.gridD  = -800000:5000:800000;
-	%	nD=numel(results.gridD);
-	%
-	%	results.thkD=NaN*ones(nD,length(results.timegrid));
-	%	results.sD=NaN*ones(nD,length(results.timegrid));
-	%	results.vxmeanD=NaN*ones(nD,length(results.timegrid));
-	%	results.vymeanD=NaN*ones(nD,length(results.timegrid));
-	%	results.maskD=NaN*ones(nD,length(results.timegrid));
-	%
-	%	results.gridE  = -800000:5000:800000;
-	%	nE=numel(results.gridE);
-	%
-	%	results.thkE=NaN*ones(nE,length(results.timegrid));
-	%	results.sE=NaN*ones(nE,length(results.timegrid));
-	%	results.vxmeanE=NaN*ones(nE,length(results.timegrid));
-	%	results.vymeanE=NaN*ones(nE,length(results.timegrid));
-	%	results.maskE=NaN*ones(nE,length(results.timegrid));
-	%
-	%	results.gridF  = -800000:5000:800000;
-	%	nF=numel(results.gridF);
-	%
-	%	results.thkF=NaN*ones(nF,length(results.timegrid));
-	%	results.sF=NaN*ones(nF,length(results.timegrid));
-	%	results.vxmeanF=NaN*ones(nF,length(results.timegrid));
-	%	results.vymeanF=NaN*ones(nF,length(results.timegrid));
-	%	results.maskF=NaN*ones(nF,length(results.timegrid));
-	%	
-	%	results.gridG  = -800000:5000:800000;
-	%	nG=numel(results.gridG);
-	%
-	%	results.thkG=NaN*ones(nG,length(results.timegrid));
-	%	results.sG=NaN*ones(nG,length(results.timegrid));
-	%	results.vxmeanG=NaN*ones(nG,length(results.timegrid));
-	%	results.vymeanG=NaN*ones(nG,length(results.timegrid));
-	%	results.maskG=NaN*ones(nG,length(results.timegrid));
-	%	
-	%	results.gridH  = -800000:5000:800000;
-	%	nH=numel(results.gridH);
-	%
-	%	results.thkH=NaN*ones(nH,length(results.timegrid));
-	%	results.sH=NaN*ones(nH,length(results.timegrid));
-	%	results.vxmeanH=NaN*ones(nH,length(results.timegrid));
-	%	results.vymeanH=NaN*ones(nH,length(results.timegrid));
-	%	results.maskH=NaN*ones(nH,length(results.timegrid));
-	%
-	%	%}}}
+	%Profile variables {{{
+	disp(['loading profile variables..']);
+	if strcmp(expnumber,'EXP3') | strcmp(expnumber,'EXP4')
+		P = readtable('./Results/Caprona_Profiles.csv');
+		Q = readtable('./Results/Halbrane_Profiles.csv');
+
+		nameList = {'A', 'B', 'C', 'D'};
+		% loof through Caprona
+		suffixname = 'Caprona_';
+		for i = 1:numel(nameList)
+			pfx = P.([suffixname, 'Profile_', nameList{i}, '_X']);
+			pfy = P.([suffixname, 'Profile_', nameList{i}, '_Y']);
+		
+			% use a temporary profile variable to hold all the info
+			pf = [];
+			% distance from the start
+			pf.distance = P.([suffixname, 'Profile_', nameList{i}, '_S']);
+
+			% project ice thickness, icemask, vx and vy
+			pf.thickness = InterpFromMeshToMesh2d(index, x, y, thickness, pfx, pfy);
+			pf.vx = InterpFromMeshToMesh2d(index, x, y, vx, pfx, pfy);
+			pf.vy = InterpFromMeshToMesh2d(index, x, y, vy, pfx, pfy);
+			pf.icemask = InterpFromMeshToMesh2d(index, x, y, icemask, pfx, pfy);
+			pf.oceanmask = InterpFromMeshToMesh2d(index, x, y, oceanmask, pfx, pfy);
+
+			results.profiles.([suffixname, nameList{i}]).distance = P.([suffixname, 'Profile_', nameList{i}, '_S']);
+		end
+
+		% loof through Halbrane
+
+
+	else
+		error('not implemented yet');	
+	end
+	%}}}
+	return
 	%Create netcdf {{{
 	disp(['creating netcdf...']);
 
