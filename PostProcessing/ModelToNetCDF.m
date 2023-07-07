@@ -1,22 +1,43 @@
-function results = ModelToNetCDF(md, directoryname, expnumber, modelname, institution);
+function results = ModelToNetCDF(md, varargin)
 	%Create netcdf files for an experiment
 
-	%directoryname: directory where the outputs are placed
-	%EXPNUMBER:
-	%MODELNAME: ...
-	%flowequation
-	%INSTITUTION NAME
-
+	%Check inputs {{{
+	if nargout>1
+		help runme
+		error('runme error message: bad usage');
+	end
+	%recover options
+	options=pairoptions(varargin{:});
+	% }}}
+	%GET directoryname : './/', directory where the outputs are placed {{{
+	directoryname = getfieldvalue(options,'directoryname','.//');
 	if exist(directoryname)~=7,
 		error(['directory ' directoryname ' does not exist']);
 	end
-	
+	% }}}
+	%GET EXP : 1, EXP1-EXP4 are currently supported{{{
+	expnum = getfieldvalue(options,'EXP', 1);
+	expstr = ['EXP', num2str(expnum)];
+	% }}}
+	%GET modelname : 'ISSM' {{{
+	modelname = getfieldvalue(options,'modelname', 'ISSM');
+	% }}}
+	%GET flowequation : 'SSA' {{{
+	flowequation = getfieldvalue(options, 'flowequation', 'SSA');
+	% }}}
+	%GET institution : 'Dartmouth' {{{
+	institution = getfieldvalue(options, 'institution', 'Dartmouth');
+	% }}}
+	%GET author : '' {{{
+	author = getfieldvalue(options, 'author', '');
+	% }}}
+
 	%Field variables {{{
 	disp(['loading field variables..']);
 
-	if strcmp(expnumber,'EXP1') | strcmp(expnumber,'EXP3')
+	if strcmp(expstr,'EXP1') | strcmp(expstr,'EXP3')
 		results.timegrid=[0];
-	elseif strcmp(expnumber,'EXP2') | strcmp(expnumber,'EXP4')
+	elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
 		results.Time1 = [0:1:1000]; % Time1
 		results.timegrid = [0:100:1000]; % Time100
 	end
@@ -60,9 +81,9 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 
 	% get these data on the time100 grid
 	for i = 1:length(results.timegrid)
-		if strcmp(expnumber,'EXP1') | strcmp(expnumber,'EXP3')
+		if strcmp(expstr,'EXP1') | strcmp(expstr,'EXP3')
 			tid = numel(time);
-		elseif strcmp(expnumber,'EXP2') | strcmp(expnumber,'EXP4')
+		elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
 			[~,tid] = min(abs( results.Time1((i-1)*100+1)-time));
 		end
 		results.vxmean(:, :, i) = transpose(InterpFromMeshToGrid(index, x, y, vx(:, tid), results.gridx, results.gridy, NaN));
@@ -87,14 +108,14 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 	%Scalar variables %{{{
 	disp(['computing scalar variables..']);
 
-	if strcmp(expnumber,'EXP1') | strcmp(expnumber,'EXP3')
+	if strcmp(expstr,'EXP1') | strcmp(expstr,'EXP3')
 		results.groundedarea = md.results.TransientSolution(end).GroundedArea; % m^2
 		results.floatingarea = md.results.TransientSolution(end).FloatingArea; % m^2
 		results.mass = md.results.TransientSolution(end).IceVolume*md.materials.rho_ice; % kg
 		results.massaf = md.results.TransientSolution(end).IceVolumeAboveFloatation*md.materials.rho_ice; % kg
 		results.totalflux_calving = md.results.TransientSolution(end).IcefrontMassFluxLevelset*10^12; % Gt/yr -> kg/yr
 		results.totalflux_groundingline = md.results.TransientSolution(end).GroundinglineMassFlux*10^12;  %Gt/yr -> kg/yr
-	elseif strcmp(expnumber,'EXP2') | strcmp(expnumber,'EXP4')
+	elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
 		% TODO : add initial values of these quantities from EXP3
 		results.groundedarea = [md.results.TransientSolution(:).GroundedArea]; % m^2
 		results.floatingarea = [md.results.TransientSolution(:).FloatingArea]; % m^2
@@ -109,7 +130,7 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 	%}}}
 	%Profile variables {{{
 	disp(['loading profile variables..']);
-	if strcmp(expnumber,'EXP3') | strcmp(expnumber,'EXP4')
+	if strcmp(expstr,'EXP3') | strcmp(expstr,'EXP4')
 		nameList = {'A', 'B', 'C', 'D'};
 
 		% loof through Caprona
@@ -119,7 +140,7 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 		for i = 1:numel(nameList)
 			pfx = P.([suffixname, 'Profile_', nameList{i}, '_X']);
 			pfy = P.([suffixname, 'Profile_', nameList{i}, '_Y']);
-		
+
 			% use a temporary profile variable to hold all the info
 			pf = [];
 			% distance from the start
@@ -143,7 +164,7 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 		for i = 1:numel(nameList)
 			pfx = Q.([suffixname, 'Profile_', nameList{i}, '_X']);
 			pfy = Q.([suffixname, 'Profile_', nameList{i}, '_Y']);
-		
+
 			% use a temporary profile variable to hold all the info
 			pf = [];
 			% distance from the start
@@ -163,27 +184,34 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 		error('not implemented yet');	
 	end
 	%}}}
-	return
 	%Create netcdf {{{
 	disp(['creating netcdf...']);
 
 	mode = netcdf.getConstant('NETCDF4');
 	mode = bitor(mode,netcdf.getConstant('CLASSIC_MODEL'));
-	ncid=netcdf.create([directoryname '/CalvingMIP_' expnumber '_' modelname '_' institution '.nc'],mode);
+	ncid=netcdf.create([directoryname '/CalvingMIP_' expstr '_' modelname '_' flowequation '_' institution '.nc'],mode);
 
 	%General attributes
-	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Author','Youngmin choi (yochoi@umd.edu)');
-	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Model','ISSM (Ice-sheet and Sea-level System Model)');
-	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Date',date());
+	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Author', author);
+	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Model', modelname);
+	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Date', date());
 
 	%Define dimensions
-	ntime_id  = netcdf.defDim(ncid,'time',length(results.timescalar));
+	if strcmp(expstr,'EXP1') | strcmp(expstr,'EXP3')
+		ntime_id  = netcdf.defDim(ncid,'Time',length(results.timegrid));
+		time_var_id = netcdf.defVar(ncid,'Time','NC_FLOAT',[ntime_id]);
+	elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
+		ntime_id  = netcdf.defDim(ncid,'Time100',length(results.timegrid));
+		time_var_id = netcdf.defVar(ncid,'Time100','NC_FLOAT',[ntime_id]);
+
+		ntime1_id  = netcdf.defDim(ncid,'Time1',length(results.Time1));
+		time1_var_id = netcdf.defVar(ncid,'Time1','NC_FLOAT',[ntime1_id]);
+	end
 	nx_id  = netcdf.defDim(ncid,'x',length(results.gridx));
 	ny_id  = netcdf.defDim(ncid,'y',length(results.gridy));
 
 	disp(['creating netcdf (define variables)...']);
 	%Define variables
-	time_var_id = netcdf.defVar(ncid,'time','NC_FLOAT',[ntime_id]);
 
 	xvelmean_var_id= netcdf.defVar(ncid,'xvelmean','NC_FLOAT',[nx_id ny_id ntime_id]);
 	netcdf.putAtt(ncid,xvelmean_var_id,'standard_name','land_ice_vertical_mean_x_velocity');

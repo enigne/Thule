@@ -23,7 +23,7 @@ parfor i = 1:Ndata
 	end
 end
 %}}}
-results=ModelToNetCDF(mdList{1}, './Results', 'EXP4', 'SSA', 'Dartmouth');
+results=ModelToNetCDF(mdList{1}, 'directoryname', './Results', 'EXP', 4, 'author', 'Cheng Gong (gong.cheng@dartmouth.edu)');
 return
 % Generate plots{{{
 Cmap = {'#0072BD', '#D95319', '#EDB120', '#7E2F8E', '#77AC30'};
