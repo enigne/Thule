@@ -79,7 +79,7 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 	mask(results.icemask<0) = 1;		% grounded and floating
 	mask(results.icemask>0) = 3;		% open ocean
 	mask((results.oceanmask<0) & (results.icemask<0)) = 2;
-	results.mask = mask;		% no need to rotate
+	results.mask = convertLevelsetsToCalvingMIPMask(results.icemask, results.oceanmask);
 
 	% bed is static
 	results.bed = transpose(InterpFromMeshToGrid(index, x, y, md.geometry.bed, results.gridx, results.gridy, NaN));
@@ -110,12 +110,12 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 	%Profile variables {{{
 	disp(['loading profile variables..']);
 	if strcmp(expnumber,'EXP3') | strcmp(expnumber,'EXP4')
-		P = readtable('./Results/Caprona_Profiles.csv');
-		Q = readtable('./Results/Halbrane_Profiles.csv');
-
 		nameList = {'A', 'B', 'C', 'D'};
+
 		% loof through Caprona
+		P = readtable('./Results/Caprona_Profiles.csv');
 		suffixname = 'Caprona_';
+		disp(['  Projecting solutions onto ' suffixname, ' profiles'])
 		for i = 1:numel(nameList)
 			pfx = P.([suffixname, 'Profile_', nameList{i}, '_X']);
 			pfy = P.([suffixname, 'Profile_', nameList{i}, '_Y']);
@@ -131,13 +131,34 @@ function results = ModelToNetCDF(md, directoryname, expnumber, modelname, instit
 			pf.vy = InterpFromMeshToMesh2d(index, x, y, vy, pfx, pfy);
 			pf.icemask = InterpFromMeshToMesh2d(index, x, y, icemask, pfx, pfy);
 			pf.oceanmask = InterpFromMeshToMesh2d(index, x, y, oceanmask, pfx, pfy);
+			pf.mask = convertLevelsetsToCalvingMIPMask(pf.icemask, pf.oceanmask);
 
-			results.profiles.([suffixname, nameList{i}]).distance = P.([suffixname, 'Profile_', nameList{i}, '_S']);
+			results.profiles.([suffixname, nameList{i}]) = pf;
 		end
 
 		% loof through Halbrane
+		Q = readtable('./Results/Halbrane_Profiles.csv');
+		suffixname = 'Halbrane_';
+		disp(['  Projecting solutions onto ' suffixname, ' profiles'])
+		for i = 1:numel(nameList)
+			pfx = Q.([suffixname, 'Profile_', nameList{i}, '_X']);
+			pfy = Q.([suffixname, 'Profile_', nameList{i}, '_Y']);
+		
+			% use a temporary profile variable to hold all the info
+			pf = [];
+			% distance from the start
+			pf.distance = Q.([suffixname, 'Profile_', nameList{i}, '_S']);
 
+			% project ice thickness, icemask, vx and vy
+			pf.thickness = InterpFromMeshToMesh2d(index, x, y, thickness, pfx, pfy);
+			pf.vx = InterpFromMeshToMesh2d(index, x, y, vx, pfx, pfy);
+			pf.vy = InterpFromMeshToMesh2d(index, x, y, vy, pfx, pfy);
+			pf.icemask = InterpFromMeshToMesh2d(index, x, y, icemask, pfx, pfy);
+			pf.oceanmask = InterpFromMeshToMesh2d(index, x, y, oceanmask, pfx, pfy);
+			pf.mask = convertLevelsetsToCalvingMIPMask(pf.icemask, pf.oceanmask);
 
+			results.profiles.([suffixname, nameList{i}]) = pf;
+		end
 	else
 		error('not implemented yet');	
 	end
