@@ -204,27 +204,32 @@ function results = ModelToNetCDF(md, varargin)
 		delete(ExpName);
 	end
 
-	% Time 
+	% Time{{{
 	if strcmp(expstr,'EXP1') | strcmp(expstr,'EXP3')
 		timeStr = 'Time';
 		timeExtraStr = 'Time';
 	elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
 		timeStr = 'Time1';
 		timeExtraStr = 'Time100';
+
 		% additional variable
 		nccreate(ExpName, timeStr,'Dimensions',{timeStr numel(results.Time1)})
 		ncwrite(ExpName,timeStr,results.Time1)
+		ncwriteatt(ExpName, timeStr,'units','a');
 	end
 	nccreate(ExpName, timeExtraStr, 'Dimensions', {timeExtraStr, numel(results.timegrid)})
 	ncwrite(ExpName, timeExtraStr, results.timegrid)
-
-	% Spatial dimensions
+	ncwriteatt(ExpName, timeExtraStr,'units','a');
+	%}}}
+	% Spatial dimensions {{{
 	nccreate(ExpName, 'X', 'Dimensions', {'X' 321})
 	nccreate(ExpName, 'Y', 'Dimensions', {'Y' 321})
 	ncwrite(ExpName, 'X', results.gridx)
 	ncwrite(ExpName, 'Y', results.gridy)
-
-	% Fields: velocity, thickness, masks
+	ncwriteatt(ExpName,'X','units','m')
+	ncwriteatt(ExpName,'Y','units','m') 
+	%}}}
+	% Fields: velocity, thickness, masks{{{
 	nccreate(ExpName,'xvelmean','Dimensions',{'X' 321 'Y' 321 timeExtraStr numel(results.timegrid)},'FillValue',nan)
 	nccreate(ExpName,'yvelmean','Dimensions',{'X' 321 'Y' 321 timeExtraStr numel(results.timegrid)},'FillValue',nan)
 	nccreate(ExpName,'lithk','Dimensions',{'X' 321 'Y' 321 timeExtraStr numel(results.timegrid)},'FillValue',nan)
@@ -239,7 +244,21 @@ function results = ModelToNetCDF(md, varargin)
 	ncwrite(ExpName, 'topg', results.bed)
 	ncwrite(ExpName, 'calverate', results.calvingrate)
 
-	% scalar variables 
+	ncwriteatt(ExpName,'xvelmean','units','m/a')
+	ncwriteatt(ExpName,'yvelmean','units','m/a')
+	ncwriteatt(ExpName,'lithk','units','m');
+	ncwriteatt(ExpName,'mask','flag_values','1, 2, 3');
+	ncwriteatt(ExpName,'topg','units','m');
+	ncwriteatt(ExpName,'calverate','units','m/a');
+
+	ncwriteatt(ExpName,'xvelmean','Standard_name','land_ice_vertical_mean_x_velocity')
+	ncwriteatt(ExpName,'yvelmean','Standard_name','land_ice_vertical_mean_y_velocity')
+	ncwriteatt(ExpName,'lithk','Standard_name','land_ice_thickness');
+	ncwriteatt(ExpName,'mask','flag_meanings','1=grounded ice, 2=floating ice, 3=open ocean');
+	ncwriteatt(ExpName,'topg','Standard_name','bedrock_altitude');
+	ncwriteatt(ExpName,'calverate','Standard_name','calving_rate');
+	%}}}
+	% scalar variables {{{
 	nccreate(ExpName,'iareafl',		'Dimensions',{timeStr numel(results.Time1)})
 	nccreate(ExpName,'iareagr',		'Dimensions',{timeStr numel(results.Time1)})
 	nccreate(ExpName,'lim',				'Dimensions',{timeStr numel(results.Time1)})
@@ -254,8 +273,22 @@ function results = ModelToNetCDF(md, varargin)
 	ncwrite(ExpName,'tendlicalvf',results.totalflux_calving)
 	ncwrite(ExpName,'tendligroundf', results.totalflux_groundingline)
 
+	ncwriteatt(ExpName,'iareafl','units','m^2')
+	ncwriteatt(ExpName,'iareagr','units','m^2')
+	ncwriteatt(ExpName,'lim','units','kg')
+	ncwriteatt(ExpName,'limnsw','units','kg')
+	ncwriteatt(ExpName,'tendlicalvf','units','kg/a');
+	ncwriteatt(ExpName,'tendligroundf','units','kg/a');
+
+	ncwriteatt(ExpName,'iareafl','Standard_name','grounded_ice_sheet_area')
+	ncwriteatt(ExpName,'iareagr','Standard_name','floating_ice_shelf_area')
+	ncwriteatt(ExpName,'lim','Standard_name','land_ice_mass')
+	ncwriteatt(ExpName,'limnsw','Standard_name','land_ice_mass_not_displacing_sea_water')
+	ncwriteatt(ExpName,'tendlicalvf','Standard_name','tendency_of_land_ice_mass_due_to_calving');
+	ncwriteatt(ExpName,'tendligroundf','Standard_name','tendency_of_grounded_ice_mass');
+	%}}}
 	return
-	
+
 	% Profiles
 	nccreate(ExpName,'lithkCapA','Dimensions',{'Caprona A' numel(lithkCapA)})
 	nccreate(ExpName,'sCapA','Dimensions',{'Caprona A' numel(lithkCapA)})
@@ -269,11 +302,6 @@ function results = ModelToNetCDF(md, varargin)
 	nccreate(ExpName,'yvelmeanHalA','Dimensions',{'Halbrane A' numel(lithkHalA)},'FillValue',nan)
 	nccreate(ExpName,'maskHalA','Dimensions',{'Halbrane A' numel(lithkHalA)})
 
-
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-	% % 
-	% 
 	ncwrite(ExpName,'lithkCapA',lithkCapA)
 	ncwrite(ExpName,'sCapA',sCapA)
 	ncwrite(ExpName,'xvelmeanCapA',xvelmeanCapA)
@@ -286,69 +314,30 @@ function results = ModelToNetCDF(md, varargin)
 	ncwrite(ExpName,'xvelmeanHalA',yvelmeanHalA)
 	ncwrite(ExpName,'maskHalA',maskHalA)
 
-	% 
-	% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	% 
-	ncwriteatt(ExpName,'Time','units','a');
-	ncwriteatt(ExpName,'X','units','m')
-	ncwriteatt(ExpName,'Y','units','m')
-	ncwriteatt(ExpName,'xvelmean','units','m/a')
-	ncwriteatt(ExpName,'yvelmean','units','m/a')
-	ncwriteatt(ExpName,'lithk','units','m');
-	ncwriteatt(ExpName,'topg','units','m');
-	ncwriteatt(ExpName,'calverate','units','m/a');
-	% 
-	ncwriteatt(ExpName,'iareafl','units','m^2')
-	ncwriteatt(ExpName,'iareagr','units','m^2')
-	ncwriteatt(ExpName,'lim','units','kg')
-	ncwriteatt(ExpName,'limnsw','units','kg')
-	ncwriteatt(ExpName,'tendlicalvf','units','kg/a');
-	ncwriteatt(ExpName,'tendligroundf','units','kg/a');
-
 	ncwriteatt(ExpName,'lithkCapA','units','m');
 	ncwriteatt(ExpName,'sCapA','units','m');
 	ncwriteatt(ExpName,'xvelmeanCapA','units','m/a');
 	ncwriteatt(ExpName,'yvelmeanCapA','units','m/a');
+	ncwriteatt(ExpName,'maskCapA','flag_values','1, 2, 3');
 
 	ncwriteatt(ExpName,'lithkHalA','units','m');
 	ncwriteatt(ExpName,'sHalA','units','m');
 	ncwriteatt(ExpName,'xvelmeanHalA','units','m/a');
 	ncwriteatt(ExpName,'yvelmeanHalA','units','m/a');
-
-	ncwriteatt(ExpName,'xvelmean','Standard_name','land_ice_vertical_mean_x_velocity')
-	ncwriteatt(ExpName,'yvelmean','Standard_name','land_ice_vertical_mean_y_velocity')
-	ncwriteatt(ExpName,'lithk','Standard_name','land_ice_thickness');
-	ncwriteatt(ExpName,'topg','Standard_name','bedrock_altitude');
-	ncwriteatt(ExpName,'calverate','Standard_name','calving_rate');
-	% 
-	ncwriteatt(ExpName,'iareafl','Standard_name','grounded_ice_sheet_area')
-	ncwriteatt(ExpName,'iareagr','Standard_name','floating_ice_shelf_area')
-	ncwriteatt(ExpName,'lim','Standard_name','land_ice_mass')
-	ncwriteatt(ExpName,'limnsw','Standard_name','land_ice_mass_not_displacing_sea_water')
-	ncwriteatt(ExpName,'tendlicalvf','Standard_name','tendency_of_land_ice_mass_due_to_calving');
-	ncwriteatt(ExpName,'tendligroundf','Standard_name','tendency_of_grounded_ice_mass');
+	ncwriteatt(ExpName,'maskHalA','flag_values','1, 2, 3');
 
 	ncwriteatt(ExpName,'lithkCapA','Standard_name','land_ice_thickness_along_profile_A');
 	ncwriteatt(ExpName,'sCapA','Standard_name','distance_along_profile_A');
 	ncwriteatt(ExpName,'xvelmeanCapA','Standard_name','land_ice_vertical_mean_x_velocity_along_profile_A');
 	ncwriteatt(ExpName,'yvelmeanCapA','Standard_name','land_ice_vertical_mean_y_velocity_along_profile_A');
+	ncwriteatt(ExpName,'maskCapA','flag_meanings','1=grounded ice, 2=floating ice, 3=open ocean');
 
 	ncwriteatt(ExpName,'lithkHalA','Standard_name','land_ice_thickness_along_profile_A');
 	ncwriteatt(ExpName,'sHalA','Standard_name','distance_along_profile_A');
 	ncwriteatt(ExpName,'xvelmeanHalA','Standard_name','land_ice_vertical_mean_x_velocity_along_profile_A');
 	ncwriteatt(ExpName,'yvelmeanHalA','Standard_name','land_ice_vertical_mean_y_velocity_along_profile_A');
-
-
-	%%%%%%%%%%%%%%%%%%%%%%%%
-
-	ncwriteatt(ExpName,'mask','flag_values','1, 2, 3');
-	ncwriteatt(ExpName,'mask','flag_meanings','1=grounded ice, 2=floating ice, 3=open ocean');
-	ncwriteatt(ExpName,'maskCapA','flag_values','1, 2, 3');
-	ncwriteatt(ExpName,'maskCapA','flag_meanings','1=grounded ice, 2=floating ice, 3=open ocean');
-	ncwriteatt(ExpName,'maskHalA','flag_values','1, 2, 3');
 	ncwriteatt(ExpName,'maskHalA','flag_meanings','1=grounded ice, 2=floating ice, 3=open ocean');
 
-	% 
 	ncdisp(ExpName)
 
 	%}}}
