@@ -230,7 +230,7 @@ function varargout=runme(varargin)
 		elseif (coarse_resolution<=1e3)
 			md_coarse = loadmodel(org,['Pseudo_Relaxation_', flowmodel, coarse_suffix]);
 		else
-			md_coarse = loadmodel(org,['Relaxation_', flowmodel, coarse_suffix]);
+			md_coarse = loadmodel(org,['Exp3_', flowmodel, coarse_suffix]);
 		end
 
 		disp(['  Projecting ', num2str(md_coarse.mesh.numberofvertices), ' nodes to a finer mesh with ', num2str(md.mesh.numberofvertices), ' nodes' ])

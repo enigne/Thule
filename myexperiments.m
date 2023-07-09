@@ -4,7 +4,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [9];
+experiments = [6];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=10km {{{
@@ -37,12 +37,27 @@ if any(experiments == 4) % exp 4: EXP-3 on 5km mesh {{{
 		'flow model', flowmodel, ...
 		'relaxation time', relaxT);
 end %}}}
-if any(experiments == 5) % exp 5: project from 5km to 2km mesh and reinitialize {{{
+if any(experiments == 5) % exp 5: EXP-4 on 5km mesh {{{
+	steps = [9];
+	resolution = 5e3;
+	savePath = [today, '_EXP4_res_', num2str(resolution, '%d')];
+	md = runme('steps', steps,  ...
+		'cluster name', 'discovery',...
+		'jobTime', 5, ...
+		'savePath', [savePath],...
+		'resolution', resolution, ...
+		'flow model', flowmodel);
+end %}}}
+if any(experiments == 6) % exp 6: project from 5km to 2km mesh and reinitialize {{{
 	steps = [1:3, 6];
 	coarse_resolution = 5e3;
 	resolution = 2e3;
-	md = runme('steps', steps, 'resolution', resolution, 'flow model', flowmodel, 'coarse resolution', coarse_resolution);
+	md = runme('steps', steps, ...
+		'resolution', resolution, ...
+		'flow model', flowmodel, ...
+		'coarse resolution', coarse_resolution);
 end %}}}
+return
 if any(experiments == 6) % exp 6: relaxation on 2km mesh with moving front (EXP-3) directly {{{
 	steps = [8];
 	resolution = 2e3;
@@ -75,20 +90,8 @@ if any(experiments == 8) % exp 8: relaxation on 1km mesh with moving front (EXP-
 		'flow model', flowmodel, ...
 		'relaxation time', relaxT);
 end %}}}
-if any(experiments == 9) % exp 9: EXP-4 on 5km mesh {{{
-	steps = [9];
-	resolution = 5e3;
-	savePath = [today, '_EXP4_res_', num2str(resolution, '%d')];
-	md = runme('steps', steps,  ...
-		'cluster name', 'discovery',...
-		'jobTime', 5, ...
-		'savePath', [savePath],...
-		'resolution', resolution, ...
-		'flow model', flowmodel);
-end %}}}
 
 
-return
 if any(experiments == 6) % exp 6: project from 5km to 2km mesh and reinitialize {{{
 	steps = [1:4, 6];
 	coarse_resolution = 5e3;
