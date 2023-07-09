@@ -258,7 +258,7 @@ function results = ModelToNetCDF(md, varargin)
 	ncwriteatt(ExpName,'topg','Standard_name','bedrock_altitude');
 	ncwriteatt(ExpName,'calverate','Standard_name','calving_rate');
 	%}}}
-	% scalar variables {{{
+	% Scalar variables {{{
 	nccreate(ExpName,'iareafl',		'Dimensions',{timeStr numel(results.Time1)})
 	nccreate(ExpName,'iareagr',		'Dimensions',{timeStr numel(results.Time1)})
 	nccreate(ExpName,'lim',				'Dimensions',{timeStr numel(results.Time1)})
@@ -287,154 +287,59 @@ function results = ModelToNetCDF(md, varargin)
 	ncwriteatt(ExpName,'tendlicalvf','Standard_name','tendency_of_land_ice_mass_due_to_calving');
 	ncwriteatt(ExpName,'tendligroundf','Standard_name','tendency_of_grounded_ice_mass');
 	%}}}
-	return
-
-	% Profiles
-	nccreate(ExpName,'lithkCapA','Dimensions',{'Caprona A' numel(lithkCapA)})
-	nccreate(ExpName,'sCapA','Dimensions',{'Caprona A' numel(lithkCapA)})
-	nccreate(ExpName,'xvelmeanCapA','Dimensions',{'Caprona A' numel(lithkCapA)},'FillValue',nan)
-	nccreate(ExpName,'yvelmeanCapA','Dimensions',{'Caprona A' numel(lithkCapA)},'FillValue',nan)
-	nccreate(ExpName,'maskCapA','Dimensions',{'Caprona A' numel(lithkCapA)})
-
-	nccreate(ExpName,'lithkHalA','Dimensions',{'Halbrane A' numel(lithkHalA)})
-	nccreate(ExpName,'sHalA','Dimensions',{'Halbrane A' numel(lithkHalA)})
-	nccreate(ExpName,'xvelmeanHalA','Dimensions',{'Halbrane A' numel(lithkHalA)},'FillValue',nan)
-	nccreate(ExpName,'yvelmeanHalA','Dimensions',{'Halbrane A' numel(lithkHalA)},'FillValue',nan)
-	nccreate(ExpName,'maskHalA','Dimensions',{'Halbrane A' numel(lithkHalA)})
-
-	ncwrite(ExpName,'lithkCapA',lithkCapA)
-	ncwrite(ExpName,'sCapA',sCapA)
-	ncwrite(ExpName,'xvelmeanCapA',xvelmeanCapA)
-	ncwrite(ExpName,'xvelmeanCapA',yvelmeanCapA)
-	ncwrite(ExpName,'maskCapA',maskCapA)
-
-	ncwrite(ExpName,'lithkHalA',lithkHalA)
-	ncwrite(ExpName,'sHalA',sHalA)
-	ncwrite(ExpName,'xvelmeanHalA',xvelmeanHalA)
-	ncwrite(ExpName,'xvelmeanHalA',yvelmeanHalA)
-	ncwrite(ExpName,'maskHalA',maskHalA)
-
-	ncwriteatt(ExpName,'lithkCapA','units','m');
-	ncwriteatt(ExpName,'sCapA','units','m');
-	ncwriteatt(ExpName,'xvelmeanCapA','units','m/a');
-	ncwriteatt(ExpName,'yvelmeanCapA','units','m/a');
-	ncwriteatt(ExpName,'maskCapA','flag_values','1, 2, 3');
-
-	ncwriteatt(ExpName,'lithkHalA','units','m');
-	ncwriteatt(ExpName,'sHalA','units','m');
-	ncwriteatt(ExpName,'xvelmeanHalA','units','m/a');
-	ncwriteatt(ExpName,'yvelmeanHalA','units','m/a');
-	ncwriteatt(ExpName,'maskHalA','flag_values','1, 2, 3');
-
-	ncwriteatt(ExpName,'lithkCapA','Standard_name','land_ice_thickness_along_profile_A');
-	ncwriteatt(ExpName,'sCapA','Standard_name','distance_along_profile_A');
-	ncwriteatt(ExpName,'xvelmeanCapA','Standard_name','land_ice_vertical_mean_x_velocity_along_profile_A');
-	ncwriteatt(ExpName,'yvelmeanCapA','Standard_name','land_ice_vertical_mean_y_velocity_along_profile_A');
-	ncwriteatt(ExpName,'maskCapA','flag_meanings','1=grounded ice, 2=floating ice, 3=open ocean');
-
-	ncwriteatt(ExpName,'lithkHalA','Standard_name','land_ice_thickness_along_profile_A');
-	ncwriteatt(ExpName,'sHalA','Standard_name','distance_along_profile_A');
-	ncwriteatt(ExpName,'xvelmeanHalA','Standard_name','land_ice_vertical_mean_x_velocity_along_profile_A');
-	ncwriteatt(ExpName,'yvelmeanHalA','Standard_name','land_ice_vertical_mean_y_velocity_along_profile_A');
-	ncwriteatt(ExpName,'maskHalA','flag_meanings','1=grounded ice, 2=floating ice, 3=open ocean');
-
-	ncdisp(ExpName)
-
-	%}}}
-	return
-	%Create netcdf {{{
-	disp(['creating netcdf...']);
-
-	mode = netcdf.getConstant('NETCDF4');
-	mode = bitor(mode,netcdf.getConstant('CLASSIC_MODEL'));
-	ncid=netcdf.create([directoryname '/CalvingMIP_' expstr '_' modelname '_' flowequation '_' institution '.nc'],mode);
-
-	%General attributes
-	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Author', author);
-	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Model', modelname);
-	netcdf.putAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'Date', date());
-
-	%Define dimensions
-	if strcmp(expstr,'EXP1') | strcmp(expstr,'EXP3')
-		ntime_id  = netcdf.defDim(ncid,'Time',length(results.timegrid));
-		time_var_id = netcdf.defVar(ncid,'Time','NC_FLOAT',[ntime_id]);
-	elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
-		ntime_id  = netcdf.defDim(ncid,'Time100',length(results.timegrid));
-		time_var_id = netcdf.defVar(ncid,'Time100','NC_FLOAT',[ntime_id]);
-
-		ntime1_id  = netcdf.defDim(ncid,'Time1',length(results.Time1));
-		time1_var_id = netcdf.defVar(ncid,'Time1','NC_FLOAT',[ntime1_id]);
+	% Profiles {{{
+	if strcmp(expstr,'EXP3') | strcmp(expstr,'EXP4')
+		fullPre = {'Caprona', 'Halbrane'};		% prefix of the full profile name
+		shortPre = {'Cap', 'Hal'};						% prefix of the short profile name
+	else
+		error('Not implemented')
 	end
-	nx_id  = netcdf.defDim(ncid,'x',length(results.gridx));
-	ny_id  = netcdf.defDim(ncid,'y',length(results.gridy));
 
-	disp(['creating netcdf (define variables)...']);
-	%Define variables
+	for p = 1:numel(fullPre)
+		for i = 1:numel(nameList)
+			% Profiles
+			pf = results.profiles.([fullPre{p}, '_', nameList{i}]);
+			% short and long names for the netCDF file
+			sN = [shortPre{p}, nameList{i}];
+			fN = [fullPre{p}, ' ', nameList{i}];
+			% write varibles to nc files
+			if strcmp(expstr,'EXP1') | strcmp(expstr,'EXP3')
+				% no time dimension for Exp1 and EXP3
+				nccreate(ExpName, ['lithk', sN], 'Dimensions', {fN numel(pf.distance)});
+				nccreate(ExpName, ['s', sN],'Dimensions',{fN numel(pf.distance)});
+				nccreate(ExpName, ['xvelmean', sN], 'Dimensions', {fN numel(pf.distance)}, 'FillValue', nan);
+				nccreate(ExpName,['yvelmean', sN],'Dimensions',{fN numel(pf.distance)}, 'FillValue', nan);
+				nccreate(ExpName, ['mask', sN], 'Dimensions', {fN numel(pf.distance)});
+			elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
+				% add time dimension to Exp2 and EXP4
+				nccreate(ExpName, ['lithk', sN], 'Dimensions', {fN numel(pf.distance) timeStr numel(results.Time1)} );
+				nccreate(ExpName, ['s', sN],'Dimensions',{fN numel(pf.distance) timeStr numel(results.Time1)});
+				nccreate(ExpName, ['xvelmean', sN], 'Dimensions', {fN numel(pf.distance) timeStr numel(results.Time1)}, 'FillValue', nan);
+				nccreate(ExpName,['yvelmean', sN],'Dimensions',{fN numel(pf.distance) timeStr numel(results.Time1)}, 'FillValue', nan);
+				nccreate(ExpName, ['mask', sN], 'Dimensions', {fN numel(pf.distance) timeStr numel(results.Time1)});
+			else
+				error('Not implemented')
+			end
 
-	xvelmean_var_id= netcdf.defVar(ncid,'xvelmean','NC_FLOAT',[nx_id ny_id ntime_id]);
-	netcdf.putAtt(ncid,xvelmean_var_id,'standard_name','land_ice_vertical_mean_x_velocity');
-	netcdf.putAtt(ncid,xvelmean_var_id,'units',        'm/a');
+			ncwrite(ExpName, ['lithk', sN], pf.thickness)
+			ncwrite(ExpName, ['s', sN], pf.distance)
+			ncwrite(ExpName, ['xvelmean', sN], pf.vx)
+			ncwrite(ExpName, ['yvelmean', sN], pf.vy)
+			ncwrite(ExpName, ['mask', sN], pf.mask)
 
-	yvelmean_var_id= netcdf.defVar(ncid,'yvelmean','NC_FLOAT',[nx_id ny_id ntime_id]);
-	netcdf.putAtt(ncid,yvelmean_var_id,'standard_name','land_ice_vertical_mean_y_velocity');
-	netcdf.putAtt(ncid,yvelmean_var_id,'units',        'm/a');
+			ncwriteatt(ExpName, ['lithk', sN], 'units','m');
+			ncwriteatt(ExpName, ['s', sN], 'units', 'm');
+			ncwriteatt(ExpName, ['xvelmean' sN], 'units', 'm/a');
+			ncwriteatt(ExpName, ['yvelmean' sN], 'units', 'm/a');
+			ncwriteatt(ExpName, ['mask', sN], 'flag_values', '1, 2, 3');
 
-	lithk_var_id= netcdf.defVar(ncid,'lithk','NC_FLOAT',[nx_id ny_id ntime_id]);
-	netcdf.putAtt(ncid,lithk_var_id,'standard_name','land_ice_thickness');
-	netcdf.putAtt(ncid,lithk_var_id,'units',        'm');
-
-	mask_var_id= netcdf.defVar(ncid,'mask','NC_FLOAT',[nx_id ny_id ntime_id]);
-	netcdf.putAtt(ncid,mask_var_id,'standard_name','');
-	netcdf.putAtt(ncid,mask_var_id,'units',        'none');
-
-	topg_var_id= netcdf.defVar(ncid,'topg','NC_FLOAT',[nx_id ny_id ntime_id]);
-	netcdf.putAtt(ncid,topg_var_id,'standard_name','bedrock_altimetry');
-	netcdf.putAtt(ncid,topg_var_id,'units',        'm');
-
-	iareagr_var_id = netcdf.defVar(ncid,'iareagr','NC_FLOAT',[ntime_id]);
-	netcdf.putAtt(ncid,iareagr_var_id,'standard_name','grounded_ice_sheet_area');
-	netcdf.putAtt(ncid,iareagr_var_id,'units',        'm^2');
-
-	iareafl_var_id = netcdf.defVar(ncid,'iareafl','NC_FLOAT',[ntime_id]);
-	netcdf.putAtt(ncid,iareafl_var_id,'standard_name','floating_ice_sheet_area');
-	netcdf.putAtt(ncid,iareafl_var_id,'units',        'm^2');
-
-	lim_var_id = netcdf.defVar(ncid,'lim','NC_FLOAT',[ntime_id]);
-	netcdf.putAtt(ncid,lim_var_id,'standard_name','land_ice_mass');
-	netcdf.putAtt(ncid,lim_var_id,'units',        'kg');
-
-	limnsw_var_id = netcdf.defVar(ncid,'limnsw','NC_FLOAT',[ntime_id]);
-	netcdf.putAtt(ncid,limnsw_var_id,'standard_name','land_ice_mass_not_displacing_sea_water');
-	netcdf.putAtt(ncid,limnsw_var_id,'units',        'kg');
-
-	tendlicalvf_var_id = netcdf.defVar(ncid,'tendlicalvf','NC_FLOAT',[ntime_id]);
-	netcdf.putAtt(ncid,tendlicalvf_var_id,'standard_name','tendency_of_land_ice_mass_due_to_calving');
-	netcdf.putAtt(ncid,tendlicalvf_var_id,'units',        'kg/a');
-
-	tendligroundf_var_id = netcdf.defVar(ncid,'tendligroundf','NC_FLOAT',[ntime_id]);
-	netcdf.putAtt(ncid,tendligroundf_var_id,'standard_name','tendency_of_grounded_ice_mass');
-	netcdf.putAtt(ncid,tendligroundf_var_id,'units',        'kg/a');
-
-	netcdf.endDef(ncid);
-
-	disp(['creating netcdf (write variables)...']);
-	%Write variables
-	netcdf.putVar(ncid,xvelmean_var_id,results.vxmean);
-	netcdf.putVar(ncid,yvelmean_var_id,results.vymean);
-	netcdf.putVar(ncid,lithk_var_id,results.thickness);
-	netcdf.putVar(ncid,mask_var_id,results.mask);
-	netcdf.putVar(ncid,topg_var_id,results.bed);
-
-	netcdf.putVar(ncid,iareagr_var_id,results.groundedarea);
-	netcdf.putVar(ncid,iareafl_var_id,results.floatingarea);
-	netcdf.putVar(ncid,lim_var_id,results.mass);
-	netcdf.putVar(ncid,limnsw_var_id,results.massaf);
-	netcdf.putVar(ncid,tendlicalvf_var_id,results.totalflux_calving);
-	netcdf.putVar(ncid,tendligroundf_var_id,results.totalflux_groundingline);
-
-	netcdf.putVar(ncid,time_var_id,results.timescalar);
-
-	%Close netcdf
-	netcdf.close(ncid)
-
-	% }}}
+			ncwriteatt(ExpName, ['lithk', sN], 'Standard_name','land_ice_thickness_along_profile_A');
+			ncwriteatt(ExpName, ['s', sN], 'Standard_name', 'distance_along_profile_A');
+			ncwriteatt(ExpName, ['xvelmean', sN], 'Standard_name', 'land_ice_vertical_mean_x_velocity_along_profile_A');
+			ncwriteatt(ExpName, ['yvelmean', sN], 'Standard_name', 'land_ice_vertical_mean_y_velocity_along_profile_A');
+			ncwriteatt(ExpName, ['mask', sN], 'flag_meanings', '1=grounded ice, 2=floating ice, 3=open ocean');
+		end
+	end
+	%}}}
+	ncdisp(ExpName)
+	%}}}
