@@ -416,7 +416,8 @@ function varargout=runme(varargin)
 		% set Wv = -750*sin(2*pi*t/1000);
 		Wt = [0:md.timestepping.time_step:500];
 		Wv = -750*sin(2*pi*Wt/1000);
-		md.frontalforcings.ablationrate = [ones(md.mesh.numberofvertices,1) * Wv; Wt];
+%		md.frontalforcings.ablationrate = [ones(md.mesh.numberofvertices,1) * Wv; Wt];
+		md.frontalforcings.ablationrate = zeros(md.mesh.numberofvertices,1);
 		
 		md.levelset.spclevelset = NaN(md.mesh.numberofvertices+1,4);
 		pos = find(md.mesh.vertexonboundary);
@@ -440,6 +441,9 @@ function varargout=runme(varargin)
 		md.settings.waitonlock = waitonlock; % do not wait for complete
 		if strcmpi(md.cluster.name, 'totten')
 			md.miscellaneous.name = ['Thule_transient', suffix];
+			%		md.cluster.np=1;
+			md.debug.valgrind = 1;
+			md.verbose = verbose('all');
 		else
 			md.miscellaneous.name = [savePath];
 		end
@@ -449,9 +453,6 @@ function varargout=runme(varargin)
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		md.settings.solver_residue_threshold = 1e-5;
 		md.cluster = cluster;
-%		md.cluster.np=1;
-		md.debug.valgrind = 1;
-		md.verbose = verbose('all');
 		md=solve(md,'tr', 'runtimename', false);
 
 		savemodel(org,md);
