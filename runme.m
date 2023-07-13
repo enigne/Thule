@@ -397,8 +397,8 @@ function varargout=runme(varargin)
 		% depend on the resolution, 5km->dt=1, 2km->dt=0.4, 1km->dt=0.2 
 
 		%md.timestepping.time_step=cfl_step(md, md.initialization.vx, md.initialization.vy);
-		md.timestepping.time_step = 1*resolution/5000;
-		md.settings.output_frequency = 5000/resolution;
+		md.timestepping.time_step = 0.5; %1*resolution/5000;
+		md.settings.output_frequency = 2; %5000/resolution;
 
 		% We set the transient parameters
 		md.transient.ismovingfront=1;
@@ -449,6 +449,9 @@ function varargout=runme(varargin)
 		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
 		md.settings.solver_residue_threshold = 1e-5;
 		md.cluster = cluster;
+%		md.cluster.np=1;
+		md.debug.valgrind = 1;
+		md.verbose = verbose('all');
 		md=solve(md,'tr', 'runtimename', false);
 
 		savemodel(org,md);
