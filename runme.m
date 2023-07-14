@@ -68,9 +68,9 @@ function varargout=runme(varargin)
 	fprintf(['\n  ========  ' upper(glacier) '  ========\n\n']);
 	%}}}
 	%Settings and suffix{{{
-	suffix = ['_', num2str(resolution/1000, '%.0f'), 'km'];
-	coarse_suffix = ['_', num2str(coarse_resolution/1000, '%.0f'), 'km'];
-	%}}}za
+	suffix = ['_', strrep(num2str(resolution/1000, '%.2g'),'.','_'), 'km'];
+	coarse_suffix = ['_', strrep(num2str(coarse_resolution/1000, '%.2g'),'.','_'), 'km'];
+	%}}}
 
 	%%%%%% Step 1--5
 	if perform(org, ['Mesh', suffix])% {{{
@@ -394,7 +394,7 @@ function varargout=runme(varargin)
 		md.timestepping.start_time=0;
 		md.timestepping.final_time=1000;
 
-		% depend on the resolution, 5km->dt=1, 2km->dt=0.4, 1km->dt=0.2 
+		% depend on the resolution, 5km->dt=1, 2.5km->dt=0.5, 1.25km->dt=0.25
 
 		%md.timestepping.time_step=cfl_step(md, md.initialization.vx, md.initialization.vy);
 		md.timestepping.time_step = 1*resolution/5000;
