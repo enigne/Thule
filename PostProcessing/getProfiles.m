@@ -1,19 +1,22 @@
 clear
 close all
 
+Id = 5;
+outputFolder = './Results/2_5kmResults/';
+
+% Setting {{{
 addpath('./');
 addpath('../');
 projectsettings;
 
 glacier = 'Thule';
 saveflag = 1;
-% Setting {{{
 projPath = ['/totten_1/chenggong/', glacier, '/'];
 steps = [1];
 %}}}
 % Loading models {{{
 stepName = 'Transient';
-[folderList, dataNameList] = getFolderList(4);
+[folderList, dataNameList] = getFolderList(Id);
 Ndata = length(folderList);
 parfor i = 1:Ndata
 	org{i}=organizer('repository', [projPath, 'Models/', folderList{i}], 'prefix', ['Model_' glacier '_'], 'steps', steps);
@@ -23,8 +26,8 @@ parfor i = 1:Ndata
 	end
 end
 %}}}
-results=ModelToNetCDF(mdList{1}, 'directoryname', './Results', 'EXP', 4, 'author', 'Cheng Gong (gong.cheng@dartmouth.edu)');
-results3=ModelToNetCDF(mdList{1}, 'directoryname', './Results', 'EXP', 3, 'author', 'Cheng Gong (gong.cheng@dartmouth.edu)');
+results3 = ModelToNetCDF(mdList{1}, 'directoryname', outputFolder, 'EXP', 3, 'author', 'Cheng Gong (gong.cheng@dartmouth.edu)');
+results4 = ModelToNetCDF(mdList{2}, 'directoryname', outputFolder, 'EXP', 4, 'author', 'Cheng Gong (gong.cheng@dartmouth.edu)');
 return
 % Generate plots{{{
 Cmap = {'#0072BD', '#D95319', '#EDB120', '#7E2F8E', '#77AC30'};

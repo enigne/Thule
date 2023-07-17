@@ -68,8 +68,8 @@ function varargout=runme(varargin)
 	fprintf(['\n  ========  ' upper(glacier) '  ========\n\n']);
 	%}}}
 	%Settings and suffix{{{
-	suffix = ['_', strrep(num2str(resolution/1000, '%.2g'),'.','_'), 'km'];
-	coarse_suffix = ['_', strrep(num2str(coarse_resolution/1000, '%.2g'),'.','_'), 'km'];
+	suffix = ['_', strrep(num2str(resolution/1000, '%g'),'.','_'), 'km'];
+	coarse_suffix = ['_', strrep(num2str(coarse_resolution/1000, '%g'),'.','_'), 'km'];
 	%}}}
 
 	%%%%%% Step 1--5
