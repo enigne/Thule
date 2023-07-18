@@ -4,7 +4,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [9];
+experiments = [10];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=10km {{{
@@ -89,6 +89,19 @@ if any(experiments == 9) % exp 9: project from 2.5km to 1.25km mesh and reinitia
 		'resolution', resolution, ...
 		'flow model', flowmodel, ...
 		'coarse resolution', coarse_resolution);
+end %}}}
+if any(experiments == 10) % exp 10: EXP-3 on 1.25km mesh {{{
+	steps = [8];
+	resolution = 1.25e3;
+	relaxT = 1000;
+	savePath = [today, '_EXP3_res_', num2str(resolution, '%d')];
+	md = runme('steps', steps,  ...
+		'cluster name', 'discovery',...
+		'jobTime', 40, ...
+		'savePath', [savePath],...
+		'resolution', resolution, ...
+		'flow model', flowmodel, ...
+		'relaxation time', relaxT);
 end %}}}
 return
 if any(experiments == 6) % exp 6: relaxation on 2km mesh with moving front (EXP-3) directly {{{
