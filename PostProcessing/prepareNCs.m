@@ -1,8 +1,8 @@
 clear
 close all
 
-Id = 5;
-outputFolder = './Results/2_5kmResults/';
+Id = 4;
+outputFolder = './Results/5kmResults/';
 
 % Setting {{{
 addpath('./');
@@ -26,6 +26,19 @@ parfor i = 1:Ndata
 	end
 end
 %}}}
+% copy EXP3 final results to EXP4 model if needed {{{
+if ~isfield(mdList{2}.results, 'InitialSolution')
+	mdList{2}.results.InitialSolution.GroundedArea = mdList{1}.results.TransientSolution(end).GroundedArea;
+	mdList{2}.results.InitialSolution.FloatingArea = mdList{1}.results.TransientSolution(end).FloatingArea;
+	mdList{2}.results.InitialSolution.IceVolume = mdList{1}.results.TransientSolution(end).IceVolume;
+	mdList{2}.results.InitialSolution.IceVolumeAboveFloatation = mdList{1}.results.TransientSolution(end).IceVolumeAboveFloatation;
+	mdList{2}.results.InitialSolution.IcefrontMassFluxLevelset = mdList{1}.results.TransientSolution(end).IcefrontMassFluxLevelset;
+	mdList{2}.results.InitialSolution.GroundinglineMassFlux = mdList{1}.results.TransientSolution(end).GroundinglineMassFlux;
+
+	savemodel(org{2}, mdList{2});
+end
+%}}}
+% Create NetCDF {{{}}}
 results3 = ModelToNetCDF(mdList{1}, 'directoryname', outputFolder, 'EXP', 3, 'author', 'Cheng Gong (gong.cheng@dartmouth.edu)');
 results4 = ModelToNetCDF(mdList{2}, 'directoryname', outputFolder, 'EXP', 4, 'author', 'Cheng Gong (gong.cheng@dartmouth.edu)');
 return

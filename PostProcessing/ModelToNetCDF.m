@@ -76,14 +76,19 @@ function results = ModelToNetCDF(md, varargin)
 		icemask = md.results.TransientSolution(end).MaskIceLevelset;
 		oceanmask = md.results.TransientSolution(end).MaskOceanLevelset;
 	elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
-		time = [0, md.results.TransientSolution(:).time]; % time start at 0, add initial conditions at the beginning
-		vx = [[md.initialization.vx], md.results.TransientSolution(:).Vx];
-		vy = [[md.initialization.vy], md.results.TransientSolution(:).Vy];
-		thickness = [[md.geometry.thickness], md.results.TransientSolution(:).Thickness];
-		base = [[md.geometry.base], md.results.TransientSolution(:).Base];
-		calvingrate = [[md.results.TransientSolution(1).CalvingCalvingrate], md.results.TransientSolution(:).CalvingCalvingrate]; % we don't have the iniital for this, so extrapolate from t=1
-		icemask = [[md.mask.ice_levelset], md.results.TransientSolution(:).MaskIceLevelset];
-		oceanmask = [[md.mask.ocean_levelset], md.results.TransientSolution(:).MaskOceanLevelset];
+		mdT = [md.results.TransientSolution(:).time];
+		% find the indices in model results correspond to results.Time1
+		[~, indd] = find(mdT==results.Time1');
+
+		% take all the request time points
+		time = [0, md.results.TransientSolution(indd).time]; % time start at 0, add initial conditions at the beginning
+		vx = [[md.initialization.vx], md.results.TransientSolution(indd).Vx];
+		vy = [[md.initialization.vy], md.results.TransientSolution(indd).Vy];
+		thickness = [[md.geometry.thickness], md.results.TransientSolution(indd).Thickness];
+		base = [[md.geometry.base], md.results.TransientSolution(indd).Base];
+		calvingrate = [[md.results.TransientSolution(1).CalvingCalvingrate], md.results.TransientSolution(indd).CalvingCalvingrate]; % we don't have the iniital for this, so extrapolate from t=1
+		icemask = [[md.mask.ice_levelset], md.results.TransientSolution(indd).MaskIceLevelset];
+		oceanmask = [[md.mask.ocean_levelset], md.results.TransientSolution(indd).MaskOceanLevelset];
 	end
 	% set vel/thk in the open ocean to NaN
 	vx(icemask>0) = NaN;
@@ -128,13 +133,13 @@ function results = ModelToNetCDF(md, varargin)
 		results.totalflux_calving = md.results.TransientSolution(end).IcefrontMassFluxLevelset*10^12; % Gt/yr -> kg/yr
 		results.totalflux_groundingline = md.results.TransientSolution(end).GroundinglineMassFlux*10^12;  %Gt/yr -> kg/yr
 	elseif strcmp(expstr,'EXP2') | strcmp(expstr,'EXP4')
-		% TODO : add initial values of these quantities from EXP3
-		results.groundedarea = [md.results.TransientSolution(:).GroundedArea]; % m^2
-		results.floatingarea = [md.results.TransientSolution(:).FloatingArea]; % m^2
-		results.mass = [md.results.TransientSolution(:).IceVolume]*md.materials.rho_ice; % kg
-		results.massaf = [md.results.TransientSolution(:).IceVolumeAboveFloatation]*md.materials.rho_ice; % kg
-		results.totalflux_calving = [md.results.TransientSolution(:).IcefrontMassFluxLevelset]*10^12; % Gt/yr -> kg/yr
-		results.totalflux_groundingline = [md.results.TransientSolution(:).GroundinglineMassFlux]*10^12;  %Gt/yr -> kg/yr
+		% add initial values of these quantities from EXP3
+		results.groundedarea = [md.results.InitialSolution.GroundedArea, md.results.TransientSolution(indd).GroundedArea]; % m^2
+		results.floatingarea = [md.results.InitialSolution.FloatingArea, md.results.TransientSolution(indd).FloatingArea]; % m^2
+		results.mass = [md.results.InitialSolution.IceVolume, md.results.TransientSolution(indd).IceVolume]*md.materials.rho_ice; % kg
+		results.massaf = [md.results.InitialSolution.IceVolumeAboveFloatation, md.results.TransientSolution(indd).IceVolumeAboveFloatation]*md.materials.rho_ice; % kg
+		results.totalflux_calving = [md.results.InitialSolution.IcefrontMassFluxLevelset, md.results.TransientSolution(indd).IcefrontMassFluxLevelset]*10^12; % Gt/yr -> kg/yr
+		results.totalflux_groundingline = [md.results.InitialSolution.GroundinglineMassFlux, md.results.TransientSolution(indd).GroundinglineMassFlux]*10^12;  %Gt/yr -> kg/yr
 	else
 		error('not implemented yet');	
 	end

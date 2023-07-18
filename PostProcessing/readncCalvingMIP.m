@@ -7,8 +7,8 @@ function results = readncCalvingMIP(varargin)
 	%recover options
 	options=pairoptions(varargin{:});
 	% }}}
-	%GET directoryname : './/', directory where the outputs are placed {{{
-	directoryname = getfieldvalue(options,'directoryname','2_5kmResults');
+	%GET directoryname : './Results/2_5kmResults', directory where the outputs are placed {{{
+	directoryname = getfieldvalue(options,'directoryname','./Results/2_5kmResults');
 	if exist(directoryname)~=7,
 		error(['directory ' directoryname ' does not exist']);
 	end
