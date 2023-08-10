@@ -4,7 +4,7 @@ close all
 
 today = datestr(date(), 'yyyymmdd');
 
-experiments = [10];
+experiments = [11];
 flowmodel = 'SSA';
 
 if any(experiments == 1) % exp 1: spin up on a coarse mesh dx=10km {{{
