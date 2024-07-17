@@ -7,11 +7,10 @@ function createProfiles(expnumber, foldername, Nx)
 
 	flagCap = 0;
 	flagHal = 0;
+	flagCircle = 0;
 
-	if strcmp(expnumber,'EXP1')
-		error([expnumber, ' not supported yet'])
-	elseif strcmp(expnumber,'EXP2')
-		error([expnumber, ' not supported yet'])
+	if (strcmp(expnumber,'EXP1') || strcmp(expnumber,'EXP2'))
+		flagCircle = 1;
 	elseif (strcmp(expnumber,'EXP3') || strcmp(expnumber,'EXP4'))
 		flagCap = 1;
 		flagHal = 1;
@@ -25,6 +24,36 @@ function createProfiles(expnumber, foldername, Nx)
 		Nx = 200;
 	end
 
+	% set the profiles
+	if flagCircle
+		Circle.A.x = zeros(Nx, 1)*1e3;							Circle.A.y = linspace(0, 800, Nx)'*1e3;
+		Circle.B.x = linspace(0, 800, Nx)'*1e3/sqrt(2);		Circle.B.y = Circle.B.x;
+		Circle.C.x = linspace(0, 800, Nx)'*1e3;				Circle.C.y = zeros(Nx, 1)*1e3;
+		Circle.D.x = linspace(0, 800, Nx)'*1e3/sqrt(2);		Circle.D.y = -Circle.D.x;
+
+		Circle.E.x = zeros(Nx, 1)*1e3;							Circle.E.y = linspace(0, -800, Nx)'*1e3;
+		Circle.F.x = linspace(0, -800, Nx)'*1e3/sqrt(2);	Circle.F.y = Circle.F.x;
+		Circle.G.x = linspace(0, -800, Nx)'*1e3;				Circle.G.y = zeros(Nx, 1)*1e3;
+		Circle.H.x = linspace(0, -800, Nx)'*1e3/sqrt(2);	Circle.H.y = -Circle.H.x;
+
+		% prepare for table
+		fn = fieldnames(Circle);
+		Nfn = numel(fn);
+		data = zeros(Nx, Nfn*3); % X, Y, S
+		names = '';
+		for i=1:Nfn
+			data(:, i*3-2) = Circle.(fn{i}).x;
+			names{i*3-2} = ['Circle_Profile_', upper(fn{i}), '_X'];
+			data(:, i*3-1) = Circle.(fn{i}).y;
+			names{i*3-1} = ['Circle_Profile_', upper(fn{i}), '_Y'];
+			data(:, i*3) =  sqrt((Circle.(fn{i}).x-Circle.(fn{i}).x(1)).^2+(Circle.(fn{i}).y-Circle.(fn{i}).y(1)).^2);
+			names{i*3} = ['Circle_Profile_', upper(fn{i}), '_S'];
+		end
+		% make a table
+		T = array2table(data);
+		T.Properties.VariableNames = names;
+		writetable(T,[foldername, '/Circle_Profiles.csv'],'Delimiter',',','QuoteStrings',1)
+	end
 	% set the profiles
 	if flagCap
 		Caprona.A.x = linspace(-390, -590, Nx)'*1e3; Caprona.A.y = linspace(0, 450, Nx)'*1e3;
