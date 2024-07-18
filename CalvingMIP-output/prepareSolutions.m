@@ -14,7 +14,8 @@ EXP = 'EXP4';
 %filename = 'CalvingMIP_Circ_5km_HO_Exp2_save2d'; frontdata = 'EXP2_HO';
 %filename = 'cmip-AWI-ex2-G5000-refined-pulse-linear-normal-100_save2d'; frontdata = 'EXP2_AWI';
 %filename = 'cmip-AWI-ex4-G5000-refined-pulse-linear-normal-100_save2d'; frontdata = 'EXP4_AWI';
-filename = '../Models/20230709_EXP4_res_5000/Model_Thule_Transient'; frontdata = 'EXP4_Dartmouth';
+%filename = '../Models/20230709_EXP4_res_5000/Model_Thule_Transient'; frontdata = 'EXP4_Dartmouth';
+filename = '../Models/20230714_EXP4_res_2500/Model_Thule_Transient'; frontdata = 'EXP4_2_5_Dartmouth';
 
 % Loading data 
 org=organizer('repository', [projPath, 'CalvingMIP-output/'], 'prefix', '', 'steps', 0);

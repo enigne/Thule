@@ -1,11 +1,11 @@
 clear 
 close all
 
-EXP = 1;
+EXP = 4;
 
 %EXP2_AWI.mat  EXP2_HO.mat  EXP4_AWI.mat  EXP4_Dartmouth.mat
-nameList = {'AWI (HO)', 'HO'};
-fileList = {'EXP2_AWI.mat', 'EXP2_HO.mat'};
+nameList = {'AWI (HO)', 'Dart (SSA)', 'Dart (SSA, 2.5km)'};
+fileList = {'EXP4_AWI.mat', 'EXP4_Dartmouth.mat', 'EXP4_2_5_Dartmouth'};
 
 Nf = numel(fileList);
 % load solutions
@@ -14,20 +14,66 @@ for i = 1: Nf
 end
 
 % plot front position
-figure('Position', [0, 800, 500, 400])
+figure('Position', [0, 800, 1000, 400])
 for i = 1: Nf
-	plot(temp{i}.time, mean(temp{i}.distance))
+	subplot(1,2,1)
+	plot(temp{i}.time, mean(temp{i}.distance(1:4,:)))
+	hold on
+	subplot(1,2,2)
+	plot(temp{i}.time, mean(temp{i}.distance(5:8,:)))
 	hold on
 end
+subplot(1,2,1)
 xlim([0,1000])
-ylim([640, 770]*1e3)
+ylim([200, 500]*1e3)
+set(gcf,'Color','w');
+xlabel('Time (a)')
+ylabel('Mean Front position (m)')
+title('Caprona')
+legend(nameList,'location', 'best')
+
+subplot(1,2,2)
+xlim([0,1000])
+ylim([450, 750]*1e3)
 set(gcf,'Color','w');
 xlabel('Time (a)')
 ylabel('Mean Front position (m)')
 legend(nameList,'location', 'best')
+title('Halbrane')
 
-figure('Position', [0, 800, 500, 400])
+% plot front position
+figure('Position', [0, 800, 1000, 400])
 for i = 1: Nf
+   subplot(1,2,1)
+   plot(temp{i}.time, std(temp{i}.distance(1:4,:)))
+   hold on
+   subplot(1,2,2)
+   plot(temp{i}.time, std(temp{i}.distance(5:8,:)))
+   hold on
+end
+subplot(1,2,1)
+xlim([0,1000])
+set(gcf,'Color','w');
+xlabel('Time (a)')
+ylabel('Std Front position (m)')
+title('Caprona')
+legend(nameList,'location', 'best')
+
+subplot(1,2,2)
+xlim([0,1000])
+set(gcf,'Color','w');
+xlabel('Time (a)')
+ylabel('Std Front position (m)')
+legend(nameList,'location', 'best')
+title('Halbrane')
+return
+
+
+
+%
+figure('Position', [0, 800, 1000, 400])
+for i = 1: 4
+	subplot(1,2,1)
    plot(temp{i}.time, std(temp{i}.distance))
    hold on
 end
