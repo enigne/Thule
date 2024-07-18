@@ -31,6 +31,7 @@ function profiles = project2Profiles(md, P, suffixname)
 		pf.icemask = InterpFromMeshToMesh2d(index, x, y, icemask, pfx, pfy);
 		pf.oceanmask = InterpFromMeshToMesh2d(index, x, y, oceanmask, pfx, pfy);
 		pf.mask = convertLevelsetsToCalvingMIPMask(pf.icemask, pf.oceanmask);
+		pf.vel = sqrt(pf.vx.^2+pf.vy.^2);
 
 		profiles.([suffixname, '_', nameList(i)]) = pf;
 	end% pf - struct of the profile
