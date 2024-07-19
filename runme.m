@@ -55,8 +55,8 @@ function varargout=runme(varargin)
 	if strcmpi(clustername,'pfe')
 		cluster=pfe('numnodes',1,'time',60,'processor','bro','cpuspernode',28,'queue','devel'); %max time is 120 (2hr) and max cpuspernode is 28 for 'bro'
 		cluster=pfe('numnodes',1,'time',60,'processor','bro','cpuspernode',28,'queue','normal');
-	elseif strcmpi(clustername,'discovery')
-		cluster=discovery('numnodes',1,'cpuspernode',64);
+	elseif strcmpi(clustername,'andes')
+		cluster=andes('numnodes',1,'cpuspernode',64, 'memory', 128);
 		cluster.time = jobTime;
 		waitonlock = 0;
 	else
@@ -429,8 +429,8 @@ function varargout=runme(varargin)
 		md.levelset.spclevelset(pos1, 4) = sign(md.mask.ice_levelset(pos1));
 		md.levelset.spclevelset(end,1:4) = [0,500,500.1,1000];
 
-		md.levelset.stabilization = 5;
-		md.levelset.reinit_frequency = 50;
+		md.levelset.stabilization = 1;
+		md.levelset.reinit_frequency = 5;
 
 		md.verbose.solution=1;
 		md.verbose.convergence=0;
