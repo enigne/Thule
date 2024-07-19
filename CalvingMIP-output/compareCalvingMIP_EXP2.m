@@ -121,3 +121,7 @@ ylabel('Ice Volume')
 xlabel('Time (a)')
 legend(nameList,'location', 'best')
 set(gcf,'Color','w');
+
+
+id=8+1;plotmodel(md,'data',md.results.TransientSolution(id).Vel- md.results.TransientSolution(id).CalvingCalvingrate,'layer#all',7,'mask', md.results.TransientSolution(id).MaskIceLevelset<0,'xlim',[-8e5,8e5],'ylim',[-8e5,8e5],'caxis',ca,'title',['AWI(HO), time=',num2str(md.results.TransientSolution(id).time)])
+id=800;plotmodel(mdDart,'data',mdDart.results.TransientSolution(id).Vel - mdDart.results.TransientSolution(id).CalvingCalvingrate,'layer#all',10,'mask', mdDart.results.TransientSolution(id).MaskIceLevelset<0,'figure',2,'caxis',ca, 'title',['Dart(HO), time=',num2str(mdDart.results.TransientSolution(id).time)])

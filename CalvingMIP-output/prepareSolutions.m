@@ -57,3 +57,48 @@ for j = 1:Np
 end
 % save 
 save([projPath, 'CalvingMIP-output/Results/', frontdata, '.mat'], 'time', 'distance', 'thickness', 'vel')
+
+return
+
+load ../CalvingMIP-output/cmip-AWI-ex4-G5000-refined-pulse-linear-normal-100.mat
+mdAwi = md;
+load ../Models/20230709_EXP4_res_5000/Model_Thule_Transient.mat
+mdDart = md;
+mdList = [mdAwi, mdDart];
+
+nameList = {'AWI (HO)', 'Dart (SSA)'};
+figure('Position', [0, 800, 500, 400])
+for i = 1:numel(nameList)
+   md = mdList(i);
+   subplot(3,1,1)
+   plot([md.results.TransientSolution(:).time], [md.results.TransientSolution(:).GroundedArea])
+   hold on
+   subplot(3,1,2)
+   plot([md.results.TransientSolution(:).time], [md.results.TransientSolution(:).FloatingArea])
+   hold on
+   subplot(3,1,3)
+   plot([md.results.TransientSolution(:).time], [md.results.TransientSolution(:).IceVolume])
+   hold on
+end
+subplot(3,1,1)
+xlim([0,1000])
+ylabel('Grounded Area')
+xlabel('Time (a)')
+subplot(3,1,2)
+xlim([0,1000])
+ylabel('Floating Area')
+xlabel('Time (a)')
+subplot(3,1,3)
+xlim([0,1000])
+ylabel('Ice Volume')
+xlabel('Time (a)')
+legend(nameList,'location', 'best')
+set(gcf,'Color','w');
+
+
+id=3+1;plotmodel(md,'data', md.results.TransientSolution(id).CalvingCalvingrate,'layer#all',7,'mask', md.results.TransientSolution(id).MaskIceLevelset<0,'xlim',[-8e5,8e5],'ylim',[-8e5,8e5],'caxis',ca,'title',['AWI(HO), time=',num2str(md.results.TransientSolution(id).time)])
+id=300;plotmodel(mdDart,'data',mdDart.results.TransientSolution(id).CalvingCalvingrate,'mask', mdDart.results.TransientSolution(id).MaskIceLevelset<0,'figure',2,'caxis',ca, 'title',['Dart(HO), time=',num2str(mdDart.results.TransientSolution(id).time)])
+
+ca = [-750,-676];
+id=3+1;plotmodel(md,'data',md.results.TransientSolution(id).Vel - md.results.TransientSolution(id).CalvingCalvingrate,'layer#all',7,'mask', md.results.TransientSolution(id).MaskIceLevelset<0,'xlim',[-8e5,8e5],'ylim',[-8e5,8e5],'caxis',ca,'title',['AWI(HO), time=',num2str(md.results.TransientSolution(id).time)])
+id=300;plotmodel(mdDart,'data',mdDart.results.TransientSolution(id).Vel - mdDart.results.TransientSolution(id).CalvingCalvingrate,'mask', mdDart.results.TransientSolution(id).MaskIceLevelset<0,'figure',2,'caxis',ca, 'title',['Dart(HO), time=',num2str(mdDart.results.TransientSolution(id).time)])
