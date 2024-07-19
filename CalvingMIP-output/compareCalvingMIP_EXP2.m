@@ -85,3 +85,39 @@ set(gcf,'Color','w');
 ylabel('Std Frontal ice thickness (m)')
 legend(nameList,'location', 'best')
 
+return
+
+load CalvingMIP-output/cmip-AWI-ex2-G5000-refined-pulse-linear-normal-100.mat
+mdAwi = md;
+load CalvingMIP-output/CalvingMIP_Exp1_HO_5km.mat
+mdDart = md;
+mdList = [mdAwi, mdDart];
+
+nameList = {'AWI (HO)', 'HO'};
+figure('Position', [0, 800, 500, 400])
+for i = 1:numel(nameList)
+	md = mdList(i);
+	subplot(3,1,1)
+	plot([md.results.TransientSolution(:).time], [md.results.TransientSolution(:).GroundedArea])
+	hold on
+	subplot(3,1,2)
+	plot([md.results.TransientSolution(:).time], [md.results.TransientSolution(:).FloatingArea])
+	hold on
+	subplot(3,1,3)
+	plot([md.results.TransientSolution(:).time], [md.results.TransientSolution(:).IceVolume])
+	hold on
+end
+subplot(3,1,1)
+xlim([0,1000])
+ylabel('Grounded Area')
+xlabel('Time (a)')
+subplot(3,1,2)
+xlim([0,1000])
+ylabel('Floating Area')
+xlabel('Time (a)')
+subplot(3,1,3)
+xlim([0,1000])
+ylabel('Ice Volume')
+xlabel('Time (a)')
+legend(nameList,'location', 'best')
+set(gcf,'Color','w');
