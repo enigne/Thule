@@ -4,8 +4,8 @@ close all
 EXP = 4;
 
 %EXP2_AWI.mat  EXP2_HO.mat  EXP4_AWI.mat  EXP4_Dartmouth.mat
-nameList = {'AWI (HO)', 'Dart (SSA)', 'Dart (SSA, 2.5km)'};
-fileList = {'EXP4_AWI.mat', 'EXP4_Dartmouth.mat', 'EXP4_2_5_Dartmouth'};
+nameList = {'AWI (HO)', 'Dart (SSA)', 'Dart (SSA, 2.5km)', 'Dart (SSA, 2.5) stab=1'};
+fileList = {'EXP4_AWI.mat', 'EXP4_Dartmouth.mat', 'EXP4_2_5_Dartmouth', 'EXP4_2_5_Dartmouth_stab1'};
 
 Nf = numel(fileList);
 % load solutions
