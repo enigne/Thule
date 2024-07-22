@@ -429,8 +429,8 @@ function varargout=runme(varargin)
 		md.levelset.spclevelset(pos1, 4) = sign(md.mask.ice_levelset(pos1));
 		md.levelset.spclevelset(end,1:4) = [0,500,500.1,1000];
 
-		md.levelset.stabilization = 1;
-		md.levelset.reinit_frequency = 5;
+		md.levelset.stabilization = 5;
+		md.levelset.reinit_frequency = 50;
 
 		md.verbose.solution=1;
 		md.verbose.convergence=0;
