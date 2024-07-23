@@ -4,8 +4,8 @@ close all
 EXP = 4;
 
 %EXP2_AWI.mat  EXP2_HO.mat  EXP4_AWI.mat  EXP4_Dartmouth.mat
-nameList = {'AWI (HO)', 'Dart (SSA)', 'Dart (SSA, 2.5km)', 'Dart (SSA, 2.5) stab=1'};
-fileList = {'EXP4_AWI.mat', 'EXP4_Dartmouth.mat', 'EXP4_2_5_Dartmouth', 'EXP4_2_5_Dartmouth_stab1'};
+nameList = {'AWI (HO)', 'Dart (SSA, 5k)', 'Dart (SSA, 2.5k)', 'Dart (SSA, 2.5k) stab=1', 'Dart (SSA, 5k) new calving'};
+fileList = {'EXP4_AWI.mat', 'EXP4_Dartmouth.mat', 'EXP4_2_5_Dartmouth', 'EXP4_2_5_Dartmouth_stab1', 'EXP4_Dartmouth_update_calving',};
 
 Nf = numel(fileList);
 % load solutions
@@ -30,7 +30,7 @@ set(gcf,'Color','w');
 xlabel('Time (a)')
 ylabel('Mean Front position (m)')
 title('Caprona')
-legend(nameList,'location', 'best')
+%legend(nameList,'location', 'best')
 
 subplot(1,2,2)
 xlim([0,1000])
@@ -53,14 +53,16 @@ for i = 1: Nf
 end
 subplot(1,2,1)
 xlim([0,1000])
+ylim([0,7000])
 set(gcf,'Color','w');
 xlabel('Time (a)')
 ylabel('Std Front position (m)')
 title('Caprona')
-legend(nameList,'location', 'best')
+%legend(nameList,'location', 'best')
 
 subplot(1,2,2)
 xlim([0,1000])
+ylim([0,7000])
 set(gcf,'Color','w');
 xlabel('Time (a)')
 ylabel('Std Front position (m)')
@@ -81,7 +83,7 @@ xlim([0,1000])
 xlabel('Time (a)')
 set(gcf,'Color','w');
 ylabel('Std Front position (m)')
-legend(nameList,'location', 'best')
+%legend(nameList,'location', 'best')
 
 % plot front vel
 figure('Position', [0, 800, 500, 400])
@@ -132,6 +134,13 @@ ylabel('Std Frontal ice thickness (m)')
 legend(nameList,'location', 'best')
 
 return
+
+
+
+
+
+
+
 id=3+1;plotmodel(md,'data', md.results.TransientSolution(id).CalvingCalvingrate,'layer#all',7,'mask', md.results.TransientSolution(id).MaskIceLevelset<0,'xlim',[-8e5,8e5],'ylim',[-8e5,8e5],'caxis',ca,'title',['AWI(HO), time=',num2str(md.results.TransientSolution(id).time)])
 id=300;plotmodel(mdDart,'data',mdDart.results.TransientSolution(id).CalvingCalvingrate,'mask', mdDart.results.TransientSolution(id).MaskIceLevelset<0,'figure',2,'caxis',ca, 'title',['Dart(HO), time=',num2str(mdDart.results.TransientSolution(id).time)])
 
