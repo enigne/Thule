@@ -525,6 +525,81 @@ function varargout=runme(varargin)
 			system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
 		end
 	end % }}}
+	if perform(org, ['Exp4_MOLHO', suffix]) % {{{
+
+		md=loadmodel(org, ['Exp3_MOLHO', suffix]);
+
+		md.initialization.vx = md.results.TransientSolution(end).Vx;
+		md.initialization.vy = md.results.TransientSolution(end).Vy;
+
+		% Set parameters
+		md.inversion.iscontrol=0;
+		md.timestepping=timestepping();
+		md.timestepping.start_time=0;
+		md.timestepping.final_time=1000;
+
+		% depend on the resolution, 5km->dt=1, 2.5km->dt=0.5, 1.25km->dt=0.25
+
+		%md.timestepping.time_step=cfl_step(md, md.initialization.vx, md.initialization.vy);
+		md.timestepping.time_step = 1*resolution/5000;
+		md.settings.output_frequency = 5000/resolution;
+
+		% We set the transient parameters
+		md.transient.ismovingfront=1;
+		md.transient.isthermal=0;
+		md.transient.isstressbalance=1;
+		md.transient.ismasstransport=1;
+		md.transient.isgroundingline=1;
+		md.groundingline.migration = 'SubelementMigration';
+
+		% set the calving law
+		md.calving=calvingcalvingmip();
+		md.calving.experiment = 4;  % c=v
+		md.frontalforcings.meltingrate = zeros(md.mesh.numberofvertices,1);
+		md.frontalforcings.ablationrate = zeros(md.mesh.numberofvertices,1);
+
+		md.levelset.spclevelset = NaN(md.mesh.numberofvertices+1,4);
+		pos = find(md.mesh.vertexonboundary);
+		md.levelset.spclevelset(pos, 1) = md.mask.ice_levelset(pos);
+		md.levelset.spclevelset(pos, 2) = md.mask.ice_levelset(pos);
+		% set the ice free region at the initial state to be no ice forever
+		pos1 = find(md.mask.ice_levelset>0);
+		md.levelset.spclevelset(pos1, 3) = sign(md.mask.ice_levelset(pos1));
+		md.levelset.spclevelset(pos1, 4) = sign(md.mask.ice_levelset(pos1));
+		md.levelset.spclevelset(end,1:4) = [0,500,500.1,1000];
+
+		md.levelset.stabilization = 5;
+		md.levelset.reinit_frequency = 50;
+
+		md.verbose.solution=1;
+		md.verbose.convergence=0;
+		md.cluster = cluster;
+		md.transient.requested_outputs={'default','IceVolume','IceVolumeAboveFloatation', 'MaskOceanLevelset', 'MaskIceLevelset', 'CalvingCalvingrate', 'CalvingMeltingrate', 'GroundedArea','FloatingArea','IcefrontMassFluxLevelset','GroundinglineMassFlux'};
+		md.stressbalance.requested_outputs={'default'};
+
+		md.settings.waitonlock = waitonlock; % do not wait for complete
+		if strcmpi(md.cluster.name, 'totten')
+			md.miscellaneous.name = ['Thule_transient', suffix];
+			%		md.cluster.np=1;
+			md.debug.valgrind = 1;
+			md.verbose = verbose('all');
+		else
+			md.miscellaneous.name = [savePath];
+		end
+
+		%solve
+		%md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
+		md.toolkits.DefaultAnalysis=bcgslbjacobioptions();
+		md.settings.solver_residue_threshold = 1e-5;
+		md.cluster = cluster;
+		md=solve(md,'tr', 'runtimename', false);
+
+		savemodel(org,md);
+		if ~strcmp(savePath, './')
+			system(['mkdir -p ./Models/', savePath]);
+			system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
+		end
+	end % }}}
 
 
 	if perform(org, ['Pseudo_Relaxation_', flowmodel, suffix]) % {{{
