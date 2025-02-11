@@ -59,6 +59,11 @@ function varargout=runme(varargin)
 		cluster=andes('numnodes',1,'cpuspernode',64, 'memory', 128);
 		cluster.time = jobTime;
 		waitonlock = 0;
+   elseif strcmpi(clustername, 'frontera')
+      %cluster=frontera('numnodes', 1,'cpuspernode',56,'queue','flex');
+      cluster=frontera('numnodes',3,'cpuspernode',56);
+      cluster.time = jobTime;
+      waitonlock = 0;
 	else
 		cluster=generic('name',oshostname(),'np', 40);
 		waitonlock = Inf;
