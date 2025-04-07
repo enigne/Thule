@@ -118,7 +118,7 @@ end %}}}
 if any(experiments == 12) % exp 12: EXP-3 MOLHO on 5km mesh {{{
 	steps = [10];
 	resolution = 5e3;
-	relaxT = 10000;
+	relaxT = 30000;
 	savePath = [today, '_EXP3_res_', num2str(resolution, '%d')];
 	md = runme('steps', steps,  ...
 		'cluster name', 'frontera',...
