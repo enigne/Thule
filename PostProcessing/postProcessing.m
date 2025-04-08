@@ -26,11 +26,10 @@ if downloadFromAndes
 		if perform(org{i}, ['Transient_Andes_Download'])
 			mdList{i} = loadmodel(org{i}, [stepName]);
 
-			mdList{i}.cluster = andes('numnodes',1,'cpuspernode',1);
 			savePath = mdList{i}.miscellaneous.name;
 
 			% download model
-			disp(['Downloadng ', savePath, ' from Andes'])
+			disp(['Downloadng ', savePath, ' from ', mdList{1}.cluster.name])
 			mdList{i} = loadresultsfromcluster(mdList{i},'runtimename', savePath);
 		end
 	end
