@@ -530,12 +530,17 @@ function varargout=runme(varargin)
 			system(['mv ', projPath, '/Models/Model_', glacier, '_', org.steps(org.currentstep).string, '.mat ', projPath, '/Models/', savePath, '/Model_', glacier, '_Transient.mat']);
 		end
 	end % }}}
+
+	%%%%%% Step 11--15
 	if perform(org, ['Exp4_MOLHO', suffix]) % {{{
 
 		md=loadmodel(org, ['Exp3_MOLHO', suffix]);
 
 		md.initialization.vx = md.results.TransientSolution(end).Vx;
 		md.initialization.vy = md.results.TransientSolution(end).Vy;
+
+		% remove results
+		md.results = [];
 
 		% Set parameters
 		md.inversion.iscontrol=0;
@@ -583,14 +588,7 @@ function varargout=runme(varargin)
 		md.stressbalance.requested_outputs={'default'};
 
 		md.settings.waitonlock = waitonlock; % do not wait for complete
-		if strcmpi(md.cluster.name, 'totten')
-			md.miscellaneous.name = ['Thule_transient', suffix];
-			%		md.cluster.np=1;
-			md.debug.valgrind = 1;
-			md.verbose = verbose('all');
-		else
-			md.miscellaneous.name = [savePath];
-		end
+		md.miscellaneous.name = [savePath];
 
 		%solve
 		%md.toolkits.DefaultAnalysis=bcgslbjacobioptions('pc_type', 'gamg');
